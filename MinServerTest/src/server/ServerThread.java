@@ -74,22 +74,19 @@ public class ServerThread extends Thread {
     	int totalPackets = 0;
     	long myTime = System.currentTimeMillis();
     	long longTime = System.currentTimeMillis();
-    	long totalSpinTime = 0;
+    	
         while (moreQuotes != -1.1) {
         	
-        	long spinTime = System.currentTimeMillis();
         	while (moreQuotes%stallFR!=0) {
         		moreQuotes++;
         	}
-        	spinTime =  spinTime-System.currentTimeMillis();
-        	totalSpinTime += spinTime;
-        	if (windowPackets > windowFR) {
+
+        	if (windowPackets == windowFR) {
     			double observedMS = System.currentTimeMillis()-myTime;
     			myTime = System.currentTimeMillis();
-    			stallFR = (int)(stallFR*(observedMS/totalSpinTime)*desiredMS/observedMS);
+    			stallFR = (int)(stallFR*desiredMS/observedMS);
     			windowPackets = 0;
     			moreQuotes=1;
-    			totalSpinTime = 0;
     		}
         	if (System.currentTimeMillis()-longTime > 1000) {
     			System.out.println("PPS: "+totalPackets);
