@@ -44,39 +44,41 @@ public class DummyClient {
 	}
 	
 	public void updateState(byte[] buf) {
-		int index = 8;
-		int length = ByteBuffer.wrap(buf, 4, 4).getInt();
-		while (index+8 <= length) {
-			int id = ByteBuffer.wrap(buf, index, 4).getInt();
-			int command = ByteBuffer.wrap(buf, index+4, 4).getInt();
-			if (!players.containsKey(id)) {
-				System.out.println("Player id "+id);
-				players.put(id,new Player(id));
-			}
-			switch (command) {
-			case GameInput.UPKEY:
-				players.get(id).yvel+=Math.sin(players.get(id).angle);
+    	ByteBuffer wrapped = ByteBuffer.wrap(buf);
+    	wrapped.getInt(); //throw away first int not useful here
+    	int index = 8;
+    	int length = wrapped.getInt();
+    	while (index+8 <= length) {
+    		int id = wrapped.getInt();
+    		int command = wrapped.getInt();
+    		if (!players.containsKey(id)) {
+    			System.out.println("Player id "+id);
+    			players.put(id,new Player(id));
+    		}
+    		switch (command) {
+    		case GameInput.UPKEY:
+    			players.get(id).yvel+=Math.sin(players.get(id).angle);
 				players.get(id).xvel+=Math.cos(players.get(id).angle);
 				break;
 			case GameInput.DOWNKEY:
 				players.get(id).yvel-=Math.sin(players.get(id).angle);
 				players.get(id).xvel-=Math.cos(players.get(id).angle);
-				break;
-			case GameInput.LEFTKEY:
-				players.get(id).angle-=0.2;
-				break;
-			case GameInput.RIGHTKEY:
-				players.get(id).angle+=0.2;
-				break;
-			case GameInput.FIREKEY:
+    			break;
+    		case GameInput.LEFTKEY:
+    			players.get(id).angle-=0.2;
+    			break;
+    		case GameInput.RIGHTKEY:
+    			players.get(id).angle+=0.2;;
+    			break;
+    		case GameInput.FIREKEY:
     			int bid = UniqueIDGenerator.getOtherID();
     			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*3,(float)Math.sin(players.get(id).angle)*3));
     			break;
-			}
-			
-			index+=8;
-		}
-	}
+    		}
+    		
+    		index+=8;
+    	}
+    }
 	
 	public byte[] getState() {
 		byte buf[] = new byte[256];
