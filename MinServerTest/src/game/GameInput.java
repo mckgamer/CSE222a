@@ -7,9 +7,9 @@ public class GameInput implements KeyListener {
 	
 	public final static int FIREKEY = 5, LEFTKEY = 3, RIGHTKEY  = 4, UPKEY = 1, DOWNKEY = 2;
 	public boolean[] pressed = new boolean[6];
-	private SpaceFighter game;
+	private GameThread game;
 	
-	public GameInput(SpaceFighter game) {
+	public GameInput(GameThread game) {
 		this.game = game;
 	}
 	

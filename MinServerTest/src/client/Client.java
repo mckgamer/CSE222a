@@ -9,6 +9,7 @@ import java.util.zip.Adler32;
 
 import shared.ServerMessage;
 
+@Deprecated
 public class Client {
 
 	static boolean isRunning = true;

@@ -1,81 +1,82 @@
 package game;
-import java.awt.BasicStroke;
+
 import java.awt.Color;
-import java.awt.Graphics;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.zip.Adler32;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-
+import shared.ServerMessage;
 import shared.UniqueIDGenerator;
 
-@Deprecated
-public class SpaceFighter extends JPanel
-{
+public class GameThread extends Thread {
 	
-	private ArrayList<InputEvent> mInputs = new ArrayList<InputEvent>();
+	static boolean isRunning = true;
+	static Adler32 checkSum = new Adler32();
+	static int bytes = 256;
+	static String host;
+	
 	public int mClientID = 0;
+	private ArrayList<InputEvent> mInputs = new ArrayList<InputEvent>();
+	
+	int xOffSet = 0;
+	int yOffSet = 0;
+	
+	// Counter variables for debugging
+	static float normal = 1;
+	static float outOfSync = 0;
 	
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();
 	
-    public SpaceFighter()                       // set up graphics window
-    {
-        super();
-        setBackground(Color.WHITE);
-        //addKeyListener(new GameInput(this));
-        setFocusable(true);
-        
-        JFrame application = new JFrame();                            // the program itself
-        
-        application.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);   // set frame to exit
-                                                                      // when it is closed
-        application.add(this);           
+	public GameThread(int xOffSet, int yOffSet) {
+		this.xOffSet = xOffSet;
+		this.yOffSet = yOffSet;
+	}
+	
+	@Override
+	public void run() {
+		host = "localhost";
 
-
-        application.setSize(700, 700);         // window is 500 pixels wide, 400 high
-        application.setVisible(true); 
-    }
-
-    public void paintComponent(Graphics g)  // draw graphics in the panel
-    {
-        int width = getWidth();             // width of window in pixels
-        int height = getHeight();           // height of window in pixels
-
-        super.paintComponent(g);            // call superclass to make panel display correctly
-
-
-        int cX = -((players.get(mClientID)!=null)?(int)players.get(mClientID).x:0)+width/2;
-        int cY = -((players.get(mClientID)!=null)?(int)players.get(mClientID).y:0)+height/2;
-        
-        g.setColor(new Color(200,200,200));
-        for (int l=cX;l<7000;l+=700) {
-        	g.drawLine(l+cX, 0, l+cX, height);
-        }
-        for (int t=0;t<7000;t+=700) {
-        	g.drawLine(0, t+cY, width, t+cY);
-        }
-        g.setColor(new Color(0,0,0));
-        
-        // Drawing code goes here
+		try {
+			// get a datagram socket
+			DatagramSocket socket = new DatagramSocket();
+	
+			while (isRunning) {
+				// send request
+				byte[] buf = new byte[bytes];
+				ByteBuffer wrapper = ByteBuffer.wrap(buf);
+				wrapper.putInt((int) checkSum.getValue());
+				wrapper.put(getInput());
+				
+				InetAddress address = InetAddress.getByName(host);
+				DatagramPacket packet = new DatagramPacket(buf, buf.length,
+						address, 4445);
+				socket.send(packet);
+	
+				// get response
+				handleResponse(packet, socket, buf);
+	
+				checkSum.reset();
+				checkSum.update(getChunkState());
+	
+				doPhysics();
+	
+			}
+	
+			socket.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void doPhysics() {
+		// Drawing code goes here
         for (Player p: players.values()) {
-        	if (mClientID == p.entityID) {
-        		g.setColor(new Color(255,0,0));
-        	}
-        	int brX = (int)(9*Math.cos(p.angle+Math.PI/3));
-        	int brY = (int)(9*Math.sin(p.angle+Math.PI/3));
-        	int blX = (int)(9*Math.cos(p.angle-Math.PI/3));
-        	int blY = (int)(9*Math.sin(p.angle-Math.PI/3));
-        	int tX = (int)(14*Math.cos(p.angle));
-        	int tY = (int)(14*Math.sin(p.angle));
-        	g.drawLine((int)p.x+tX+cX, (int)p.y+tY+cY, (int)p.x+brX+cX, (int)p.y+brY+cY); 
-        	g.drawLine((int)p.x+tX+cX, (int)p.y+tY+cY, (int)p.x+blX+cX, (int)p.y+blY+cY);  
-        	g.drawLine((int)p.x+blX+cX, (int)p.y+blY+cY, (int)p.x+brX+cX, (int)p.y+brY+cY); 
-        	if (mClientID == p.entityID) {
-        		g.setColor(new Color(0,0,0));
-        	}
         	p.x+=p.xvel;
 	        p.y+=p.yvel;
 	        p.xvel/=1.03;
@@ -84,7 +85,6 @@ public class SpaceFighter extends JPanel
         
         ArrayList<Integer> kill = new ArrayList<Integer>();
         for (Bullet b: bullets.values()) {
-        	g.drawLine((int)b.x+cX,(int)b.y+cY,(int)(b.x+b.xvel)+cX,(int)(b.y+b.yvel)+cY);
         	b.x+=b.xvel;
 	        b.y+=b.yvel;
 	        b.life--;
@@ -95,9 +95,62 @@ public class SpaceFighter extends JPanel
         for (Integer b: kill) {
         	bullets.remove(b);
         }
-    }
+	}
+	
+	public void handleResponse(DatagramPacket packet,
+			DatagramSocket socket, byte[] buf) throws IOException {
+		outOfSync-=(outOfSync<.01)?outOfSync:.01;
+		normal-=(normal<.01)?normal:.01;
+		System.out.println("Normal: " + (double) 100*normal / (normal + outOfSync)
+				+ "% OOS: " + (double) 100*outOfSync / (normal + outOfSync) + "%");
+		// get response
+		packet = new DatagramPacket(buf, buf.length);
+		socket.receive(packet);
+		//System.out.println("Recieved a packet from sever " + packet.getPort());
+		int packetType = ByteBuffer.wrap(packet.getData(), 0, 4).getInt();
+		switch (packetType) {
+		case ServerMessage.NORMALOP:
+			// user input is included
+			//System.out.println("Normal Operation");
+			updateState(packet.getData());
+			normal++;
+			break;
+		case ServerMessage.OUTOFSYNC:
+			// im out of sync, full state included
+			System.out.println("Out of sync at " + checkSum.getValue());
+			int actualCheckSum = ByteBuffer.wrap(packet.getData(), 4, 4)
+					.getInt();
+			decodeState(ByteBuffer.wrap(packet.getData(), 8, 248));
+			System.out.println("Synced to " + actualCheckSum);
+			outOfSync++;
+			break;
+		case ServerMessage.STATEREQUEST:
+			// someone needs my state
+			System.out.println("Sending off my state");
+			byte[] buf2 = new byte[bytes];
+			ByteBuffer.wrap(buf2, 0, 4).putInt((int) checkSum.getValue());
+			ByteBuffer.wrap(buf2, 4, 252).put(getChunkState(), 0, 252);
+			InetAddress address2 = InetAddress.getByName(host);
+			DatagramPacket packet2 = new DatagramPacket(buf2, buf2.length,
+					address2, 4786);
+			socket.send(packet2);
+			System.out.println("Sent off my state of "
+					+ ByteBuffer.wrap(buf2, 0, 4).getFloat());
+			handleResponse(packet, socket, buf);
+			break;
+		case ServerMessage.IDASSIGN:
+			// im just connecting, getting my unique id
+			System.out.println("Im getting my ID yay!");
+			mClientID = ByteBuffer.wrap(packet.getData(), 4, 4)
+					.getInt();
+			System.out.println("Got the id " + mClientID);
+			handleResponse(packet, socket, buf);
+			break;
 
-    public void updateState(byte[] buf) {
+		}
+	}
+	
+	public void updateState(byte[] buf) {
     	ByteBuffer wrapped = ByteBuffer.wrap(buf);
     	wrapped.getInt(); //throw away first int not useful here
     	int index = 8;
@@ -134,7 +187,7 @@ public class SpaceFighter extends JPanel
     	}
     }
     
-    public byte[] getState() {
+    public byte[] getChunkState() {
     	byte buf[] = new byte[256];
     	ByteBuffer wrapped = ByteBuffer.wrap(buf);
     	wrapped.putInt(UniqueIDGenerator.softOther());
@@ -176,6 +229,7 @@ public class SpaceFighter extends JPanel
     		}
     	}
     }
+    
     
     public void setClientID(int id) {
     	mClientID = id;
