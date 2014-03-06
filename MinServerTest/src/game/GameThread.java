@@ -30,12 +30,15 @@ public class GameThread extends Thread {
 	float normal = 1;
 	float outOfSync = 0;
 	
+	int port = 4445;
+	
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();
 	
-	public GameThread(int xOffSet, int yOffSet) {
+	public GameThread(int port, int xOffSet, int yOffSet) {
 		this.xOffSet = xOffSet;
 		this.yOffSet = yOffSet;
+		this.port = port;
 	}
 	
 	@Override
@@ -55,7 +58,7 @@ public class GameThread extends Thread {
 				
 				InetAddress address = InetAddress.getByName(host);
 				DatagramPacket packet = new DatagramPacket(buf, buf.length,
-						address, 4445);
+						address, port);
 				socket.send(packet);
 	
 				// get response

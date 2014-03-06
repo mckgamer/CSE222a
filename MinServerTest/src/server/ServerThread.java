@@ -65,8 +65,9 @@ public class ServerThread extends Thread {
 
 		clientListener = new ClientListener("ClientListener");
 		clientListener.start();
-
-		socket = new DatagramSocket(4786);
+		int port = 4796;
+		System.out.println(port);
+		socket = new DatagramSocket(port);
 	}
 
 	public void run() {

@@ -11,6 +11,9 @@ public class UIThread extends JPanel {
 	
 	ArrayList<GameThread> gThreads = new ArrayList<GameThread>();
 	
+	GameThread myPlayer;
+	int myPlayerIndex = 0;
+	
 	public UIThread()                       // set up graphics window
     {
         super();
@@ -27,10 +30,10 @@ public class UIThread extends JPanel {
         application.setSize(700, 700);         // window is 500 pixels wide, 400 high
         application.setVisible(true); 
         
-        gThreads.add(new GameThread(-250,-250));
-        gThreads.add(new GameThread(250,-250));
-        gThreads.add(new GameThread(-250,250));
-        gThreads.add(new GameThread(250,250));
+        gThreads.add(new GameThread(4445,-250,-250));
+        gThreads.add(new GameThread(4445,250,-250));
+        gThreads.add(new GameThread(4445,-250,250));
+        gThreads.add(new GameThread(4445,250,250));
         
         for (GameThread g: gThreads) {
         	g.start();
@@ -39,16 +42,10 @@ public class UIThread extends JPanel {
         
         GameInput input = new GameInput(gThreads.get(0));
         addKeyListener(input);
+        myPlayer = gThreads.get(myPlayerIndex);
         
-        int test=0;
-        int now=2;
         while (true) {
         	repaint();
-        	
-        	/*if (test++%1000000 == 0) {
-        		now=(now+1)%4;
-        		input.setGameThread(gThreads.get(now));
-        	}*/
         }
     }
 
