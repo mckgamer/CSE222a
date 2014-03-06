@@ -91,7 +91,7 @@ public class GameThread extends Thread {
         	b.x+=b.xvel;
 	        b.y+=b.yvel;
 	        b.life--;
-	        if (b.life < 0) {
+	        if (b.life < 0 || b.x>500 || b.x<0 || b.y<0 || b.y>500) {
 	        	kill.add(b.entityID);
 	        }
         }

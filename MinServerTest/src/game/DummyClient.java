@@ -18,13 +18,24 @@ public class DummyClient {
 		checkSumt.reset();
         checkSumt.update(getState());
     	
+        ArrayList<Integer> playerTransfer = new ArrayList<Integer>();
+        
 		// Drawing code goes here
 	    for (Player p: players.values()) {
 	    	p.x+=p.xvel;
 	        p.y+=p.yvel;
 	        p.xvel/=1.03;
 	        p.yvel/=1.03;
+	        if (p.x>500 || p.x<0 || p.y<0 || p.y>500) {
+	        	playerTransfer.add(p.entityID);
+	        }
 	    }
+	    for (Integer p: playerTransfer) {
+        	players.remove(p);
+        }
+	  //if p leaves my boundaries then transfer it to another server
+	    
+	    ArrayList<Integer> bulletTransfer = new ArrayList<Integer>();
 	    ArrayList<Integer> kill = new ArrayList<Integer>();
         for (Bullet b: bullets.values()) {
         	b.x+=b.xvel;
@@ -33,6 +44,13 @@ public class DummyClient {
 	        if (b.life < 0) {
 	        	kill.add(b.entityID);
 	        }
+	        if (b.x>500 || b.x<0 || b.y<0 || b.y>500) {
+	        	bulletTransfer.add(b.entityID);
+	        }
+	        //if b leaves my boundaries then transfer it to another server
+        }
+        for (Integer b: bulletTransfer) {
+        	bullets.remove(b);
         }
         for (Integer b: kill) {
         	bullets.remove(b);
@@ -78,7 +96,25 @@ public class DummyClient {
     		
     		index+=8;
     	}
+    	recieveTransfer(wrapped);
     }
+	
+	public void recieveTransfer(ByteBuffer wrapped) {
+    	int pCount = wrapped.getInt();
+    	for (int p=0;p<pCount;p++) {
+    		int id = wrapped.getInt();
+    		Player temp = new Player(id);
+    		temp.decode(wrapped);
+    		players.put(id,temp);
+    	}
+    	int bCount = wrapped.getInt();
+    	for (int b=0;b<bCount;b++) {
+    		int id = wrapped.getInt();
+			Bullet temp = new Bullet(id);
+			temp.decode(wrapped);
+			bullets.put(id,temp);
+    	}
+	}
 	
 	public byte[] getState() {
 		byte buf[] = new byte[256];
