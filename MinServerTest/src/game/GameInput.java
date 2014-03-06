@@ -89,5 +89,9 @@ public class GameInput implements KeyListener {
 		}
 	}
 	
+	public void setGameThread(GameThread game) {
+		this.game = game;
+	}
+	
 }
 

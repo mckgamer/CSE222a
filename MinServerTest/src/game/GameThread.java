@@ -15,10 +15,10 @@ import shared.UniqueIDGenerator;
 
 public class GameThread extends Thread {
 	
-	static boolean isRunning = true;
-	static Adler32 checkSum = new Adler32();
-	static int bytes = 256;
-	static String host;
+	boolean isRunning = true;
+	Adler32 checkSum = new Adler32();
+	int bytes = 256;
+	String host;
 	
 	public int mClientID = 0;
 	private ArrayList<InputEvent> mInputs = new ArrayList<InputEvent>();
@@ -27,8 +27,8 @@ public class GameThread extends Thread {
 	int yOffSet = 0;
 	
 	// Counter variables for debugging
-	static float normal = 1;
-	static float outOfSync = 0;
+	float normal = 1;
+	float outOfSync = 0;
 	
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();

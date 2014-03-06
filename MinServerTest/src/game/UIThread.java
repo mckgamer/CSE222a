@@ -34,11 +34,21 @@ public class UIThread extends JPanel {
         
         for (GameThread g: gThreads) {
         	g.start();
-        	addKeyListener(new GameInput(g));
+        	
         }
         
+        GameInput input = new GameInput(gThreads.get(0));
+        addKeyListener(input);
+        
+        int test=0;
+        int now=2;
         while (true) {
         	repaint();
+        	
+        	/*if (test++%1000000 == 0) {
+        		now=(now+1)%4;
+        		input.setGameThread(gThreads.get(now));
+        	}*/
         }
     }
 
