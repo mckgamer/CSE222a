@@ -1,5 +1,6 @@
 package shared;
 
+@Deprecated
 public class UniqueIDGenerator {
 	
 	static int id = 0;

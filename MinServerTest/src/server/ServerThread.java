@@ -47,7 +47,7 @@ public class ServerThread extends Thread {
 	protected int moreQuotes = 0;
 	private ClientListener clientListener;
 
-	private int desiredFR = 60;
+	private int desiredFR = 30;
 	private int windowFR = 5;
 	private int stallFR = 2000000;
 	private double desiredMS = 1000 / (desiredFR / windowFR);

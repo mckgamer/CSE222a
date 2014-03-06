@@ -1,6 +1,5 @@
 package game;
 
-import java.awt.Color;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -10,10 +9,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.Adler32;
 
+import shared.PerChunkUIDGenerator;
 import shared.ServerMessage;
-import shared.UniqueIDGenerator;
 
 public class GameThread extends Thread {
+	
+	//Each thread has its own UIDGenerator
+	PerChunkUIDGenerator mUIDGen = new PerChunkUIDGenerator();
 	
 	boolean isRunning = true;
 	Adler32 checkSum = new Adler32();
@@ -102,8 +104,8 @@ public class GameThread extends Thread {
 	
 	public void handleResponse(DatagramPacket packet,
 			DatagramSocket socket, byte[] buf) throws IOException {
-		outOfSync-=(outOfSync<.01)?outOfSync:.01;
-		normal-=(normal<.01)?normal:.01;
+		if (outOfSync<.02) {outOfSync=0; } else { outOfSync-=.02; }
+		if (normal<.02) {normal=0; } else { normal-=.02; }
 		System.out.println("Normal: " + (double) 100*normal / (normal + outOfSync)
 				+ "% OOS: " + (double) 100*outOfSync / (normal + outOfSync) + "%");
 		// get response
@@ -181,8 +183,8 @@ public class GameThread extends Thread {
     			players.get(id).angle+=0.2;;
     			break;
     		case GameInput.FIREKEY:
-    			int bid = UniqueIDGenerator.getOtherID();
-    			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*3,(float)Math.sin(players.get(id).angle)*3));
+    			int bid = mUIDGen.getOtherID();
+    			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7));
     			break;
     		}
     		
@@ -193,7 +195,7 @@ public class GameThread extends Thread {
     public byte[] getChunkState() {
     	byte buf[] = new byte[256];
     	ByteBuffer wrapped = ByteBuffer.wrap(buf);
-    	wrapped.putInt(UniqueIDGenerator.softOther());
+    	wrapped.putInt(mUIDGen.softOther());
     	wrapped.putInt(players.size());
     	for (Player p : players.values()) {
     		wrapped.put(p.encode());
@@ -206,9 +208,9 @@ public class GameThread extends Thread {
     }
     
     public void decodeState(ByteBuffer wrapped) {
-    	UniqueIDGenerator.setOther(wrapped.getInt());
+    	mUIDGen.setOther(wrapped.getInt());
     	int pCount = wrapped.getInt();
-    	//players.clear();
+    	//players.clear(); //TODO should just remove ones that don't show up
     	for (int p=0;p<pCount;p++) {
     		int id = wrapped.getInt();
     		if (!players.containsKey(id)) {
@@ -220,7 +222,7 @@ public class GameThread extends Thread {
     		}
     	}
     	int bCount = wrapped.getInt();
-    	//players.clear();
+    	bullets.clear(); //TODO should just remove ones that don't show up
     	for (int b=0;b<bCount;b++) {
     		int id = wrapped.getInt();
     		if (!bullets.containsKey(id)) {

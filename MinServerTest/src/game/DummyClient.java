@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.Adler32;
 
-import shared.UniqueIDGenerator;
+import shared.PerChunkUIDGenerator;
 
 
 public class DummyClient {
@@ -12,6 +12,9 @@ public class DummyClient {
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();
 	static Adler32 checkSumt = new Adler32();
+	
+	//Each thread has its own UIDGenerator
+	PerChunkUIDGenerator mUIDGen = new PerChunkUIDGenerator();
 	
 	public void doUpdates() {
 		
@@ -89,8 +92,8 @@ public class DummyClient {
     			players.get(id).angle+=0.2;;
     			break;
     		case GameInput.FIREKEY:
-    			int bid = UniqueIDGenerator.getOtherID();
-    			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*3,(float)Math.sin(players.get(id).angle)*3));
+    			int bid = mUIDGen.getOtherID();
+    			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7));
     			break;
     		}
     		
@@ -119,7 +122,7 @@ public class DummyClient {
 	public byte[] getState() {
 		byte buf[] = new byte[256];
 		ByteBuffer wrapped = ByteBuffer.wrap(buf);
-		wrapped.putInt(UniqueIDGenerator.softOther());
+		wrapped.putInt(mUIDGen.softOther());
 		wrapped.putInt(players.size());
 		for (Player p : players.values()) {
 			wrapped.put(p.encode());
