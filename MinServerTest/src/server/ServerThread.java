@@ -32,10 +32,12 @@ package server;
  */
 import game.DummyClient;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
 import shared.ServerMessage;
 
@@ -49,25 +51,40 @@ public class ServerThread extends Thread {
 	private int windowFR = 5;
 	private int stallFR = 2000000;
 	private double desiredMS = 1000 / (desiredFR / windowFR);
+	private boolean isRunning = true;
+	
+	public void kill() {
+		if(isRunning()) {
+			isRunning = false;
+		}
+	}
+	
+	public synchronized boolean isRunning() {
+		return isRunning;
+	}
 
 	private HashMap<String, Integer> lastTalked;
 	DummyClient dummy;
 
-	public ServerThread() throws IOException {
-		this("ServerThread");
+	public ServerThread(int listenPort, int destPort) throws IOException {
+		this(listenPort, destPort, "ServerThread-" + listenPort + "<" + destPort);
 	}
 
-	public ServerThread(String name) throws IOException {
+	public ServerThread(int listenPort, int destPort, String name) throws IOException {
 		super(name);
 
 		lastTalked = new HashMap<String, Integer>();
 		dummy = new DummyClient();
 
-		clientListener = new ClientListener("ClientListener");
+		clientListener = new ClientListener(destPort, "ClientListener");
 		clientListener.start();
-		int port = 4796;
-		System.out.println(port);
-		socket = new DatagramSocket(port);
+		socket = new DatagramSocket(listenPort);
+	}
+	
+	public void updateClientList(List<String> clients) {
+		for(String addr : clientListener.lastTalked.keySet()) {
+			clients.add(addr.toString());
+		}
 	}
 
 	public void run() {
@@ -76,7 +93,7 @@ public class ServerThread extends Thread {
 		int totalPackets = 0;
 		long myTime = System.currentTimeMillis();
 		long longTime = System.currentTimeMillis();
-		while (moreQuotes != -1.1) {
+		while (isRunning()) {
 			moreQuotes++;
 			if (moreQuotes % stallFR == 0) {
 
