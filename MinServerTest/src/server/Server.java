@@ -31,8 +31,6 @@ package server;
  */
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
@@ -80,7 +78,7 @@ public class Server {
     }
     
     private static JFrame display;
-    private static List<ServerThread> servers = new ArrayList();
+    private static List<ServerThread> servers = new ArrayList<ServerThread>();
     public static void close() {
     	System.out.println("Killing servers");
     	for(ServerThread server : servers) {

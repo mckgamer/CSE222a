@@ -14,6 +14,7 @@ public class PerChunkUIDGenerator {
 		return otherID++;
 	}
 	
+	//Performs a SoftPull on the current OtherID for sync
 	public int softOther() {
 		return otherID;
 	}
