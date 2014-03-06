@@ -14,15 +14,15 @@ import shared.UniqueIDGenerator;
 public class ClientListener extends Thread {
 	
 	public DatagramSocket socket = null;
-	private HashMap<String, Long> lastTalked;
+	public HashMap<String, Long> lastTalked;
 	public ArrayList<Address> something = new ArrayList<Address>();
 	private boolean condition = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 	
-	public ClientListener(String name) throws SocketException {
+	public ClientListener(int port, String name) throws SocketException {
         super(name);
-        socket = new DatagramSocket(4445);
+        socket = new DatagramSocket(port);
         
         lastTalked = new HashMap<String,Long>();
     }

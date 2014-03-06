@@ -29,10 +29,62 @@ package server;
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-import java.io.*;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
  
 public class Server {
     public static void main(String[] args) throws IOException {
-        new ServerThread().start();
+    	//Create a bunch of server threads
+    	servers.add(new ServerThread(4796, 4445));
+    	//servers.add(new ServerThread(4797, 4446));
+    	
+    	display = new JFrame();
+    	display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	display.setSize(640, 480);
+    	display.addWindowStateListener(
+			new WindowStateListener() {
+				@Override
+				public void windowStateChanged(WindowEvent e) {
+					if(e.getID() == WindowEvent.WINDOW_CLOSED) {
+						Server.close();
+					}
+					
+				}
+				
+			}
+		);
+
+    	JPanel panel = new JPanel(new GridLayout(servers.size(), 0));
+    	display.add(panel);
+        for(ServerThread server : servers) {
+        	server.start();
+        	JPanel serverPanel = new JPanel(new FlowLayout());
+        	JButton pingButton = new JButton(server.getName());
+        	pingButton.addActionListener(new ServerActionListener(serverPanel, server));
+        	serverPanel.add(pingButton);
+        	panel.add(serverPanel);
+        }
+
+    	display.setVisible(true);
+    }
+    
+    private static JFrame display;
+    private static List<ServerThread> servers = new ArrayList();
+    public static void close() {
+    	System.out.println("Killing servers");
+    	for(ServerThread server : servers) {
+        	server.kill();
+        }
     }
 }
