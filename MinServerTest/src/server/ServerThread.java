@@ -53,6 +53,8 @@ public class ServerThread extends Thread {
 	private double desiredMS = 1000 / (desiredFR / windowFR);
 	private boolean isRunning = true;
 	
+	int bytes = 256;
+	
 	public void kill() {
 		if(isRunning()) {
 			isRunning = false;
@@ -117,7 +119,7 @@ public class ServerThread extends Thread {
 					synchronized (clientListener.something) {
 						boolean badOne = false;
 						byte[] goodData = null;
-						byte[] aggregate = new byte[256];
+						byte[] aggregate = new byte[bytes];
 						ByteBuffer aggregator = ByteBuffer.wrap(aggregate);
 						int offset = 0;
 						for (Address d : clientListener.something) {
@@ -133,7 +135,7 @@ public class ServerThread extends Thread {
 						}
 
 						/* Compute the full state buffer once. */
-						byte[] fullStateBuf = new byte[256];
+						byte[] fullStateBuf = new byte[bytes];
 						if (badOne) {
 							goodData = dummy.getState();
 							ByteBuffer fswrapper = ByteBuffer
@@ -146,7 +148,7 @@ public class ServerThread extends Thread {
 						}
 
 						/* Compute the normal op buffer once. */
-						byte[] normalBuf = new byte[256];
+						byte[] normalBuf = new byte[bytes];
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
 						nwrapper.putInt(ServerMessage.NORMALOP);
 						nwrapper.putInt(offset + 8); // length of packet useful

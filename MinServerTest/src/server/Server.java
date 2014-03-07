@@ -42,9 +42,25 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
  
 public class Server {
+	
+	static int destPort = 4445;
+	static int listenPort = 4796;
+	
     public static void main(String[] args) throws IOException {
     	//Create a bunch of server threads
-    	servers.add(new ServerThread(4796, 4445));
+    	
+    	//This automatically finds good port numbers to use
+    	boolean creating = true;
+    	while (creating) {
+	    	try {
+	    		servers.add(new ServerThread(listenPort, destPort));
+	    		creating=false;
+	    	} catch (IOException e) {
+	    		listenPort++;
+	    		destPort++;
+	    	}
+    	}
+    	
     	//servers.add(new ServerThread(4797, 4446));
     	
     	display = new JFrame();

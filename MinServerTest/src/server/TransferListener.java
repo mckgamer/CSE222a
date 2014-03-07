@@ -14,14 +14,17 @@ import shared.UniqueIDGenerator;
 public class TransferListener extends Thread {
 	
 	public DatagramSocket socket = null;
+	public HashMap<String, Long> lastTalked;
 	public ArrayList<Address> something = new ArrayList<Address>();
 	private boolean condition = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 	
-	public TransferListener(String name) throws SocketException {
+	public TransferListener(int port, String name) throws SocketException {
         super(name);
-        socket = new DatagramSocket(4444);
+        socket = new DatagramSocket(port);
+        
+        lastTalked = new HashMap<String,Long>();
     }
 	
 	public void kill() {
@@ -39,15 +42,18 @@ public class TransferListener extends Thread {
                 socket.receive(packet);
                 //System.out.println("Got one");
                 recieved = true;
-
                 
-            	byte[] buftemp = new byte[256];
-            	ByteBuffer.wrap(buftemp, 0, 4).putInt(ServerMessage.IDASSIGN);
-            	ByteBuffer.wrap(buftemp, 4, 4).putInt(UniqueIDGenerator.getID());
-				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, packet.getAddress(), packet.getPort());
-				System.out.println("Sending out ID to new CLient");
-				socket.send(packet2);
-
+                if (lastTalked.containsKey(packet.getAddress().toString()+packet.getPort())) {
+                	lastTalked.put(packet.getAddress().toString()+packet.getPort(), System.currentTimeMillis());
+                } else {
+                	byte[] buftemp = new byte[256];
+                	ByteBuffer.wrap(buftemp, 0, 4).putInt(ServerMessage.IDASSIGN);
+                	ByteBuffer.wrap(buftemp, 4, 4).putInt(UniqueIDGenerator.getID());
+    				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, packet.getAddress(), packet.getPort());
+    				System.out.println("Sending out ID to new CLient");
+    				socket.send(packet2);
+                	lastTalked.put(packet.getAddress().toString()+packet.getPort(), System.currentTimeMillis());
+                }
 
                 synchronized (something) {
                 	something.add(new Address(packet.getAddress(),packet.getPort(),ByteBuffer.wrap(buf).getInt(),buf));

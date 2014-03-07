@@ -53,10 +53,13 @@ public class GameThread extends Thread {
 	
 			while (isRunning) {
 				// send request
-				byte[] buf = new byte[bytes];
-				ByteBuffer wrapper = ByteBuffer.wrap(buf);
-				wrapper.putInt((int) checkSum.getValue());
-				wrapper.put(getInput());
+				byte[] buf;
+				synchronized (mInputs) {
+					buf = new byte[getInputsSize()+8];
+					ByteBuffer wrapper = ByteBuffer.wrap(buf);
+					wrapper.putInt((int) checkSum.getValue());
+					wrapper.put(getInput());
+				}
 				
 				InetAddress address = InetAddress.getByName(host);
 				DatagramPacket packet = new DatagramPacket(buf, buf.length,
@@ -64,6 +67,7 @@ public class GameThread extends Thread {
 				socket.send(packet);
 	
 				// get response
+				buf = new byte[bytes];
 				handleResponse(packet, socket, buf);
 	
 				checkSum.reset();
