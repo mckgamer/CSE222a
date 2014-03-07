@@ -32,5 +32,9 @@ public class Player {
 		wrapped.putFloat((float)angle);
 		return buf;
 	}
+	
+	public static int encodeSize() {
+		return 6*8;
+	}
 
 }

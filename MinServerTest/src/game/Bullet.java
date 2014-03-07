@@ -39,5 +39,9 @@ public class Bullet {
 		wrapped.putInt(life);
 		return buf;
 	}
+	
+	public static int encodeSize() {
+		return 6*8;
+	}
 
 }
