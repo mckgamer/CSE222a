@@ -5,9 +5,9 @@ import java.awt.event.KeyListener;
 
 public class GameInput implements KeyListener {
 	
-	public final static int FIREKEY = 5, LEFTKEY = 3, RIGHTKEY  = 4, UPKEY = 1, DOWNKEY = 2;
-	public boolean[] pressed = new boolean[6];
 	private GameThread game;
+	
+	public final static int FIRE = 1, LEFT = 2, RIGHT = 4, UP = 8, DOWN = 16;
 	
 	public GameInput(GameThread game) {
 		this.game = game;
@@ -20,72 +20,53 @@ public class GameInput implements KeyListener {
 	@Override
 	public void keyPressed(KeyEvent e) {
 		
-		synchronized (pressed) {
 		switch(e.getKeyCode()) {
 		case KeyEvent.VK_SPACE:
-			pressed[FIREKEY] = true;
-			synchronized (game.getInputs()) {
-				game.getInputs().add(new InputEvent(game.mClientID, FIREKEY));
-			}
+			game.mInput = game.mInput | FIRE;
 			System.out.println("Shoot Event");
 			break;
 		case KeyEvent.VK_LEFT:
-			pressed[LEFTKEY] = true;
+			game.mInput = game.mInput | LEFT;
 			System.out.println("Rotate Event");
-			synchronized (game.getInputs()) {
-				game.getInputs().add(new InputEvent(game.mClientID, LEFTKEY));
-				}
 			break;
 		case KeyEvent.VK_RIGHT:
-			pressed[RIGHTKEY] = true;
+			game.mInput = game.mInput | RIGHT;
 			System.out.println("Rotate Event");
-			synchronized (game.getInputs()) {
-				game.getInputs().add(new InputEvent(game.mClientID, RIGHTKEY));
-				}
 			break;
 		case KeyEvent.VK_UP:
-			pressed[UPKEY] = true;
+			game.mInput = game.mInput | UP;
 			System.out.println("Move Event");
-			synchronized (game.getInputs()) {
-				game.getInputs().add(new InputEvent(game.mClientID, UPKEY));
-			}
 			break;
 		case KeyEvent.VK_DOWN:
-			pressed[DOWNKEY] = true;
+			game.mInput = game.mInput | DOWN;
 			System.out.println("Move Event");
-			synchronized (game.getInputs()) {
-				game.getInputs().add(new InputEvent(game.mClientID, DOWNKEY));
-			}
 			break;
-		}
 		}
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		synchronized (pressed) {
 		switch(e.getKeyCode()) {
 		case KeyEvent.VK_SPACE:
-			pressed[FIREKEY] = false;
+			game.mInput = game.mInput & ~FIRE;
 			System.out.println("Shoot Event");
 			break;
 		case KeyEvent.VK_LEFT:
-			pressed[LEFTKEY] = false;
+			game.mInput = game.mInput & ~LEFT;
 			System.out.println("Rotate Event");
 			break;
 		case KeyEvent.VK_RIGHT:
-			pressed[RIGHTKEY] = false;
+			game.mInput = game.mInput & ~RIGHT;
 			System.out.println("Rotate Event");
 			break;
 		case KeyEvent.VK_UP:
-			pressed[UPKEY] = false;
+			game.mInput = game.mInput & ~UP;
 			System.out.println("Move Event");
 			break;
 		case KeyEvent.VK_DOWN:
-			pressed[DOWNKEY] = false;
+			game.mInput = game.mInput & ~DOWN;
 			System.out.println("Move Event");
 			break;
-		}
 		}
 	}
 	

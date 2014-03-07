@@ -71,35 +71,36 @@ public class DummyClient {
     	int length = wrapped.getInt();
     	while (index+8 <= length) {
     		int id = wrapped.getInt();
-    		int command = wrapped.getInt();
+    		
+    		int input = wrapped.getInt();
+    		
     		if (!players.containsKey(id)) {
     			System.out.println("Player id "+id);
     			players.put(id,new Player(id));
     		}
-    		switch (command) {
-    		case GameInput.UPKEY:
+    		
+    		if ((input & GameInput.UP) != 0){
     			players.get(id).yvel+=Math.sin(players.get(id).angle);
 				players.get(id).xvel+=Math.cos(players.get(id).angle);
-				break;
-			case GameInput.DOWNKEY:
-				players.get(id).yvel-=Math.sin(players.get(id).angle);
+    		}
+    		if ((input & GameInput.DOWN) != 0){
+    			players.get(id).yvel-=Math.sin(players.get(id).angle);
 				players.get(id).xvel-=Math.cos(players.get(id).angle);
-    			break;
-    		case GameInput.LEFTKEY:
+    		}
+    		if ((input & GameInput.LEFT) != 0){
     			players.get(id).angle-=0.2;
-    			break;
-    		case GameInput.RIGHTKEY:
-    			players.get(id).angle+=0.2;;
-    			break;
-    		case GameInput.FIREKEY:
+    		}
+    		if ((input & GameInput.RIGHT) != 0){
+    			players.get(id).angle+=0.2;
+    		}
+    		if ((input & GameInput.FIRE) != 0){
     			int bid = mUIDGen.getOtherID();
     			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7));
-    			break;
     		}
     		
     		index+=8;
     	}
-    	recieveTransfer(wrapped);
+    	//recieveTransfer(wrapped);
     }
 	
 	public void recieveTransfer(ByteBuffer wrapped) {
@@ -120,7 +121,7 @@ public class DummyClient {
 	}
 	
 	public byte[] getState() {
-		byte buf[] = new byte[256];
+		byte buf[] = new byte[12+players.size()*Player.encodeSize()+bullets.size()*Bullet.encodeSize()];
 		ByteBuffer wrapped = ByteBuffer.wrap(buf);
 		wrapped.putInt(mUIDGen.softOther());
 		wrapped.putInt(players.size());

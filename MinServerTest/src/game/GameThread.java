@@ -19,11 +19,11 @@ public class GameThread extends Thread {
 	
 	boolean isRunning = true;
 	Adler32 checkSum = new Adler32();
-	int bytes = 256;
+	int bytes = 1500;
 	String host;
 	
 	public int mClientID = 0;
-	private ArrayList<InputEvent> mInputs = new ArrayList<InputEvent>();
+	public int mInput = 0;
 	
 	int xOffSet = 0;
 	int yOffSet = 0;
@@ -54,12 +54,16 @@ public class GameThread extends Thread {
 			while (isRunning) {
 				// send request
 				byte[] buf;
-				synchronized (mInputs) {
-					buf = new byte[getInputsSize()+8];
-					ByteBuffer wrapper = ByteBuffer.wrap(buf);
-					wrapper.putInt((int) checkSum.getValue());
-					wrapper.put(getInput());
+				buf = new byte[8+((mInput > 0)?8:0)];
+				ByteBuffer wrapper = ByteBuffer.wrap(buf);
+				wrapper.putInt((int) checkSum.getValue());
+				wrapper.putInt(8+((mInput > 0)?8:0));
+				if (mInput > 0) {
+					wrapper.putInt(mClientID);
+					wrapper.putInt(mInput);
+					mInput = mInput & ~GameInput.FIRE;
 				}
+				
 				
 				InetAddress address = InetAddress.getByName(host);
 				DatagramPacket packet = new DatagramPacket(buf, buf.length,
@@ -67,7 +71,7 @@ public class GameThread extends Thread {
 				socket.send(packet);
 	
 				// get response
-				buf = new byte[bytes];
+				buf = new byte[bytes]; //TODO use better size here (should handle any size?)
 				handleResponse(packet, socket, buf);
 	
 				checkSum.reset();
@@ -110,8 +114,7 @@ public class GameThread extends Thread {
 			DatagramSocket socket, byte[] buf) throws IOException {
 		if (outOfSync<.02) {outOfSync=0; } else { outOfSync-=.02; }
 		if (normal<.02) {normal=0; } else { normal-=.02; }
-		System.out.println("Normal: " + (double) 100*normal / (normal + outOfSync)
-				+ "% OOS: " + (double) 100*outOfSync / (normal + outOfSync) + "%");
+		
 		// get response
 		packet = new DatagramPacket(buf, buf.length);
 		socket.receive(packet);
@@ -129,7 +132,7 @@ public class GameThread extends Thread {
 			System.out.println("Out of sync at " + checkSum.getValue());
 			int actualCheckSum = ByteBuffer.wrap(packet.getData(), 4, 4)
 					.getInt();
-			decodeState(ByteBuffer.wrap(packet.getData(), 8, 248));
+			decodeState(ByteBuffer.wrap(packet.getData(), 8, packet.getData().length-8));
 			System.out.println("Synced to " + actualCheckSum);
 			outOfSync++;
 			break;
@@ -166,30 +169,31 @@ public class GameThread extends Thread {
     	int length = wrapped.getInt();
     	while (index+8 <= length) {
     		int id = wrapped.getInt();
-    		int command = wrapped.getInt();
+    		
+    		int input = wrapped.getInt();
+    		
     		if (!players.containsKey(id)) {
     			System.out.println("Player id "+id);
     			players.put(id,new Player(id));
     		}
-    		switch (command) {
-    		case GameInput.UPKEY:
+    		
+    		if ((input & GameInput.UP) != 0){
     			players.get(id).yvel+=Math.sin(players.get(id).angle);
 				players.get(id).xvel+=Math.cos(players.get(id).angle);
-				break;
-			case GameInput.DOWNKEY:
-				players.get(id).yvel-=Math.sin(players.get(id).angle);
+    		}
+    		if ((input & GameInput.DOWN) != 0){
+    			players.get(id).yvel-=Math.sin(players.get(id).angle);
 				players.get(id).xvel-=Math.cos(players.get(id).angle);
-    			break;
-    		case GameInput.LEFTKEY:
+    		}
+    		if ((input & GameInput.LEFT) != 0){
     			players.get(id).angle-=0.2;
-    			break;
-    		case GameInput.RIGHTKEY:
-    			players.get(id).angle+=0.2;;
-    			break;
-    		case GameInput.FIREKEY:
+    		}
+    		if ((input & GameInput.RIGHT) != 0){
+    			players.get(id).angle+=0.2;
+    		}
+    		if ((input & GameInput.FIRE) != 0){
     			int bid = mUIDGen.getOtherID();
     			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7));
-    			break;
     		}
     		
     		index+=8;
@@ -197,7 +201,7 @@ public class GameThread extends Thread {
     }
     
     public byte[] getChunkState() {
-    	byte buf[] = new byte[256];
+    	byte buf[] = new byte[12+players.size()*Player.encodeSize()+bullets.size()*Bullet.encodeSize()];
     	ByteBuffer wrapped = ByteBuffer.wrap(buf);
     	wrapped.putInt(mUIDGen.softOther());
     	wrapped.putInt(players.size());
@@ -243,35 +247,5 @@ public class GameThread extends Thread {
     public void setClientID(int id) {
     	mClientID = id;
     }
-    
-    public ArrayList<InputEvent> getInputs() {
-    	return mInputs;
-    }
-
-	public int getInputsSize() {
-		return 8 * mInputs.size();
-	}
-	
-	public byte[] getInput() {
-		byte[] buf;
-		synchronized (mInputs) {
-			buf = new byte[4+getInputsSize()];
-			ByteBuffer wrapper = ByteBuffer.wrap(buf);
-			wrapper.putInt(8 + getInputsSize()); // let the
-																// server
-																// know
-																// the
-																// length of
-																// this
-
-			for (InputEvent in : mInputs) {
-				wrapper.putInt(mClientID);
-				wrapper.putInt(in.type);
-			}
-			assert (wrapper.position() == (8 * getInputsSize()));
-			mInputs.clear();
-		}
-		return buf;
-	}
 
 }

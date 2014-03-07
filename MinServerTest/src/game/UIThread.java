@@ -62,7 +62,6 @@ public class UIThread extends JPanel {
 
         super.paintComponent(g);            // call superclass to make panel display correctly
 
-        
         //Get position of player
         Player pTemp;
         int pX = 0, pY = 0;
@@ -70,8 +69,8 @@ public class UIThread extends JPanel {
         	pX = width/2 - (int) pTemp.x - myPlayer.xOffSet;
         	pY = height/2 - (int) pTemp.y - myPlayer.yOffSet;
         }
-        //Draw Grid
         
+        //Draw Grid
         g.setColor(new Color(0,0,250));
         for (int l=-250;l<751;l+=500) {
         	g.drawLine(l+pX, 0+pY-250, l+pX, 750+pY);
@@ -81,10 +80,15 @@ public class UIThread extends JPanel {
         }
         g.setColor(new Color(0,0,0));
         
-        
+        int temp = 1;
         for (GameThread gThread : gThreads) {
         	
-        	//Get Position of Player
+        	//Print Stats for each Client
+        	g.drawString("Normal: " + (double) 100*gThread.normal / (gThread.normal + gThread.outOfSync)
+    				+ "% OOS: " + (double) 100*gThread.outOfSync / (gThread.normal + gThread.outOfSync) + "%", 10, 20*(temp++));
+            
+        	
+        	//Get Position of this Chunk
             int cX = gThread.xOffSet;//-((gThread.players.get(gThread.mClientID)!=null)?(int)gThread.players.get(gThread.mClientID).x:0)+width/2;
             int cY = gThread.yOffSet;//-((gThread.players.get(gThread.mClientID)!=null)?(int)gThread.players.get(gThread.mClientID).y:0)+height/2;
             
