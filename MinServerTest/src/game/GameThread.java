@@ -54,13 +54,14 @@ public class GameThread extends Thread {
 			while (isRunning) {
 				// send request
 				byte[] buf;
-				buf = new byte[8+((mInput > 0)?8:0)];
+				int inputNow = mInput; //for sync reasons (key can change mInput async)
+				buf = new byte[8+((inputNow > 0)?8:0)];
 				ByteBuffer wrapper = ByteBuffer.wrap(buf);
 				wrapper.putInt((int) checkSum.getValue());
-				wrapper.putInt(8+((mInput > 0)?8:0));
-				if (mInput > 0) {
+				wrapper.putInt(8+((inputNow > 0)?8:0));
+				if (inputNow > 0) {
 					wrapper.putInt(mClientID);
-					wrapper.putInt(mInput);
+					wrapper.putInt(inputNow);
 					mInput = mInput & ~GameInput.FIRE;
 				}
 				

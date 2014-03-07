@@ -55,6 +55,7 @@ public class UIThread extends JPanel {
         }
     }
 
+	//TODO there is a concurrent mod error here for each gThread (looping over players/bullets)
     public void paintComponent(Graphics g)  // draw graphics in the panel
     {
         int width = getWidth();             // width of window in pixels
