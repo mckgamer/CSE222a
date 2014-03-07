@@ -20,7 +20,6 @@ public class ServerActionListener implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		List<String> clients = new ArrayList();
 		thread.updateClientList(clients);
-		System.out.println("Hello there! " + clients.size());
 		panel.removeAll();
 		panel.add((Component)arg0.getSource());
 		for(String client : clients) {
