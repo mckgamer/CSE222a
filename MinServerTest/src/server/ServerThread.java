@@ -119,7 +119,7 @@ public class ServerThread extends Thread {
 					synchronized (clientListener.something) {
 						boolean badOne = false;
 						byte[] goodData = null;
-						byte[] aggregate = new byte[bytes];
+						byte[] aggregate = new byte[bytes]; //TODO use the correct size here
 						ByteBuffer aggregator = ByteBuffer.wrap(aggregate);
 						int offset = 0;
 						for (Address d : clientListener.something) {
@@ -135,20 +135,21 @@ public class ServerThread extends Thread {
 						}
 
 						/* Compute the full state buffer once. */
-						byte[] fullStateBuf = new byte[bytes];
+						byte[] fullStateBuf = null;
 						if (badOne) {
 							goodData = dummy.getState();
+							fullStateBuf = new byte[8+goodData.length];
 							ByteBuffer fswrapper = ByteBuffer
 									.wrap(fullStateBuf);
 							fswrapper.putInt(ServerMessage.OUTOFSYNC);
 							if (goodData != null) {
 								fswrapper.putInt(dummy.checkSum());
-								fswrapper.put(goodData, 0, 248);
+								fswrapper.put(goodData);
 							}
 						}
 
 						/* Compute the normal op buffer once. */
-						byte[] normalBuf = new byte[bytes];
+						byte[] normalBuf = new byte[offset + 8];
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
 						nwrapper.putInt(ServerMessage.NORMALOP);
 						nwrapper.putInt(offset + 8); // length of packet useful
@@ -156,12 +157,12 @@ public class ServerThread extends Thread {
 
 						/* Send the appropriate packet to each client. */
 						for (Address d : clientListener.something) {
-							System.out.println(d.address);
 							DatagramPacket packet;
 							if (d.check == dummy.checkSum()) {
 								packet = new DatagramPacket(normalBuf,
 										normalBuf.length, d.address, d.port);
 							} else {
+								assert(fullStateBuf!=null);
 								System.out.println("Sending out "
 										+ dummy.checkSum());
 								packet = new DatagramPacket(fullStateBuf,
@@ -178,7 +179,6 @@ public class ServerThread extends Thread {
 						dummy.updateState(normalBuf);
 						clientListener.something.clear();
 					}
-					System.out.println("----------------------------");
 				}
 			}
 
