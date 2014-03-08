@@ -1,4 +1,6 @@
-package game;
+package client;
+
+import game.UIThread;
 
 public class NewClient {
 	 

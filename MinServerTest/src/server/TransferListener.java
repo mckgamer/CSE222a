@@ -1,5 +1,7 @@
 package server;
 
+import game.DummyClient;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -9,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import shared.ServerMessage;
-import shared.UniqueIDGenerator;
 
 public class TransferListener extends Thread {
 	
@@ -38,17 +39,16 @@ public class TransferListener extends Thread {
  
                 // receive request
                 packet = new DatagramPacket(buf, buf.length);
-                //System.out.println("Waiting");
                 socket.receive(packet);
-                //System.out.println("Got one");
                 recieved = true;
                 
                 if (lastTalked.containsKey(packet.getAddress().toString()+packet.getPort())) {
                 	lastTalked.put(packet.getAddress().toString()+packet.getPort(), System.currentTimeMillis());
                 } else {
-                	byte[] buftemp = new byte[256];
-                	ByteBuffer.wrap(buftemp, 0, 4).putInt(ServerMessage.IDASSIGN);
-                	ByteBuffer.wrap(buftemp, 4, 4).putInt(UniqueIDGenerator.getID());
+                	byte[] buftemp = new byte[5];
+                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
+                	wrapped.put(ServerMessage.IDASSIGN);
+                	wrapped.putInt(DummyClient.mUIDGen.getID()); //TODO fix for multi servers per process
     				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, packet.getAddress(), packet.getPort());
     				System.out.println("Sending out ID to new CLient");
     				socket.send(packet2);
@@ -56,7 +56,7 @@ public class TransferListener extends Thread {
                 }
 
                 synchronized (something) {
-                	something.add(new Address(packet.getAddress(),packet.getPort(),ByteBuffer.wrap(buf).getInt(),buf));
+                	something.add(new Address(packet.getAddress(),packet.getPort(),ByteBuffer.wrap(buf).get(),buf));
                 }
                 
 
@@ -70,4 +70,5 @@ public class TransferListener extends Thread {
         socket.close();
         System.out.println("Dead Really");
     }
+
 }
