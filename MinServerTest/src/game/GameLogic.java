@@ -15,6 +15,9 @@ public class GameLogic {
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();
 	
+	ArrayList<Integer> playerTransfer = new ArrayList<Integer>();
+	ArrayList<Integer> bulletTransfer = new ArrayList<Integer>();
+	
 	private Adler32 checkSumt = new Adler32();
 	
 	public void doPhysics() {
@@ -35,8 +38,13 @@ public class GameLogic {
 			}
 		}
 		for (Integer p : playerTransfer) {
-			players.remove(p);
+			if (players.get(p).x > 500) { players.get(p).x-= 500; }
+			if (players.get(p).x < 0) { players.get(p).x+= 500; }
+			if (players.get(p).y > 500) { players.get(p).y-= 500; }
+			if (players.get(p).y < 0) { players.get(p).y+= 500; }
+			//players.remove(p);
 		}
+		this.playerTransfer.addAll(playerTransfer);
 		// if p leaves my boundaries then transfer it to another server
 
 		ArrayList<Integer> bulletTransfer = new ArrayList<Integer>();
@@ -54,8 +62,13 @@ public class GameLogic {
 			// if b leaves my boundaries then transfer it to another server
 		}
 		for (Integer b : bulletTransfer) {
-			bullets.remove(b);
+			if (bullets.get(b).x > 500) { bullets.get(b).x-= 500; }
+			if (bullets.get(b).x < 0) { bullets.get(b).x+= 500; }
+			if (bullets.get(b).y > 500) { bullets.get(b).y-= 500; }
+			if (bullets.get(b).y < 0) { bullets.get(b).y+= 500; }
+			//bullets.remove(b);
 		}
+		this.bulletTransfer.addAll(bulletTransfer);
 		for (Integer b : kill) {
 			bullets.remove(b);
 		}
