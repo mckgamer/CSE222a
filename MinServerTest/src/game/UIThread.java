@@ -101,8 +101,11 @@ public class UIThread extends JPanel {
 	        	}
 	        	if (p.x>500 || p.x<0 || p.y<0 || p.y>500) {
 	        		if (gThread == myPlayer && gThread.mClientID == p.entityID) {
+	        			gThreads.get(1).mInput = myPlayer.mInput;
+	        			GameThread old = myPlayer;
 	        			myPlayer = gThreads.get(1);
         				input.setGameThread(myPlayer);
+	        			old.mInput = 0; //Stops input from old thread TODO
 	        		}
         			g.setColor(new Color(0,255,0));
         			removeP = p;

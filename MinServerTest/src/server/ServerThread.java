@@ -47,7 +47,7 @@ public class ServerThread extends Thread {
 	protected int moreQuotes = 0;
 	private ClientListener clientListener;
 
-	private int desiredFR = 30;
+	private int desiredFR = 25;
 	private int windowFR = 5;
 	private int stallFR = 2000000;
 	private double desiredMS = 1000 / (desiredFR / windowFR);
@@ -115,6 +115,8 @@ public class ServerThread extends Thread {
 				windowPackets++;
 				totalPackets++;
 				dummy.doUpdates();
+				
+				byte[] normalBuf = null;
 				if (clientListener.something.size() > 0) {
 					synchronized (clientListener.something) {
 						boolean badOne = false;
@@ -149,7 +151,7 @@ public class ServerThread extends Thread {
 						}
 
 						/* Compute the normal op buffer once. */
-						byte[] normalBuf = new byte[offset + 8];
+						normalBuf = new byte[offset + 8];
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
 						nwrapper.putInt(ServerMessage.NORMALOP);
 						nwrapper.putInt(offset + 8); // length of packet useful
@@ -176,9 +178,10 @@ public class ServerThread extends Thread {
 							}
 						}
 
-						dummy.updateState(normalBuf);
 						clientListener.something.clear();
 					}
+					assert(normalBuf!=null);
+					dummy.updateState(normalBuf);
 				}
 			}
 
