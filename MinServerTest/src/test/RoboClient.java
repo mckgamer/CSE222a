@@ -1,8 +1,6 @@
 package test;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;

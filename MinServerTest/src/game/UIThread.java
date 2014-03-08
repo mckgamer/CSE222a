@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import client.GameThread;
+
 public class UIThread extends JPanel {
 	
 	private static final long serialVersionUID = -6714709327930384294L;
@@ -39,8 +41,7 @@ public class UIThread extends JPanel {
         gThreads.add(new GameThread(4445,250,250));
         
         for (GameThread g: gThreads) {
-        	g.start();
-        	
+        	g.start();	
         }
         
         input = new GameInput(gThreads.get(myPlayerIndex));
@@ -68,7 +69,7 @@ public class UIThread extends JPanel {
         //Get position of player
         Player pTemp;
         int pX = 0, pY = 0;
-        if ((pTemp = myPlayer.players.get(myPlayer.mClientID)) != null) {
+        if ((pTemp = myPlayer.gameState.players.get(myPlayer.mClientID)) != null) {
         	pX = width/2 - (int) pTemp.x - myPlayer.xOffSet;
         	pY = height/2 - (int) pTemp.y - myPlayer.yOffSet;
         }
@@ -96,22 +97,11 @@ public class UIThread extends JPanel {
             int cY = gThread.yOffSet;//-((gThread.players.get(gThread.mClientID)!=null)?(int)gThread.players.get(gThread.mClientID).y:0)+height/2;
             
 	        // Drawing code goes here
-            Player removeP = null;
-	        for (Player p: gThread.players.values()) {
+	        for (Player p: gThread.gameState.players.values()) {
 	        	if (gThread == myPlayer && gThread.mClientID == p.entityID) {
 	        		g.setColor(new Color(255,0,0));
 	        	}
-	        	if (p.x>500 || p.x<0 || p.y<0 || p.y>500) {
-	        		if (gThread == myPlayer && gThread.mClientID == p.entityID) {
-	        			gThreads.get(1).mInput = myPlayer.mInput;
-	        			GameThread old = myPlayer;
-	        			myPlayer = gThreads.get(1);
-        				input.setGameThread(myPlayer);
-	        			old.mInput = 0; //Stops input from old thread TODO
-	        		}
-        			g.setColor(new Color(0,255,0));
-        			removeP = p;
-        		}
+	        	
 	        	int brX = (int)(9*Math.cos(p.angle+Math.PI/3));
 	        	int brY = (int)(9*Math.sin(p.angle+Math.PI/3));
 	        	int blX = (int)(9*Math.cos(p.angle-Math.PI/3));
@@ -126,11 +116,9 @@ public class UIThread extends JPanel {
 	        		
 	        	}
 	        }
-	        if (removeP != null) {
-	        	gThread.players.remove(removeP.entityID);
-	        }
 	        
-	        for (Bullet b: gThread.bullets.values()) {
+	        
+	        for (Bullet b: gThread.gameState.bullets.values()) {
 	        	g.drawLine((int)b.x+cX+pX,(int)b.y+cY+pY,(int)(b.x+b.xvel)+cX+pX,(int)(b.y+b.yvel)+cY+pY);
 	        }
         }

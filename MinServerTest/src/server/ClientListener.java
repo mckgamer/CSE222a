@@ -1,5 +1,4 @@
 package server;
-import game.DummyClient;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -48,7 +47,7 @@ public class ClientListener extends Thread {
                 	byte[] buftemp = new byte[5];
                 	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
                 	wrapped.put(ServerMessage.IDASSIGN);
-                	wrapped.putInt(DummyClient.mUIDGen.getID()); //TODO fix for multi servers per process
+                	wrapped.putInt(ServerThread.dummy.mUIDGen.getID()); //TODO fix for multi servers per process
     				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, packet.getAddress(), packet.getPort());
     				System.out.println("Sending out ID to new CLient");
     				socket.send(packet2);

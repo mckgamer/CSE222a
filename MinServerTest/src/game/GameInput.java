@@ -2,6 +2,8 @@ package game;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import client.GameThread;
+
 
 public class GameInput implements KeyListener {
 	

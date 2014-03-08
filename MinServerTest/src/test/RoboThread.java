@@ -1,10 +1,10 @@
 package test;
 
-import game.GameThread;
-
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
+
+import client.GameThread;
 
 public class RoboThread {
 

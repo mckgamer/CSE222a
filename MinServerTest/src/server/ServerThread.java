@@ -1,6 +1,6 @@
 package server;
 
-import game.DummyClient;
+import game.GameLogic;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -24,6 +24,8 @@ public class ServerThread extends Thread {
 	
 	int bytes = 256;
 	
+	static GameLogic dummy;
+	
 	public void kill() {
 		if(isRunning()) {
 			isRunning = false;
@@ -34,7 +36,7 @@ public class ServerThread extends Thread {
 		return isRunning;
 	}
 
-	DummyClient dummy;
+	
 
 	public ServerThread(int listenPort, int destPort) throws IOException {
 		this(listenPort, destPort, "ServerThread-" + listenPort + "<" + destPort);
@@ -43,7 +45,7 @@ public class ServerThread extends Thread {
 	public ServerThread(int listenPort, int destPort, String name) throws IOException {
 		super(name);
 
-		dummy = new DummyClient();
+		dummy = new GameLogic();
 
 		clientListener = new ClientListener(destPort, "ClientListener");
 		clientListener.start();
@@ -81,7 +83,7 @@ public class ServerThread extends Thread {
 				}
 				windowPackets++;
 				totalPackets++;
-				dummy.doUpdates();
+				dummy.doPhysics();
 				
 				byte[] normalBuf = null;
 				if (clientListener.something.size() > 0) {
