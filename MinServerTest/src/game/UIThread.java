@@ -9,6 +9,8 @@ import javax.swing.JPanel;
 
 public class UIThread extends JPanel {
 	
+	private static final long serialVersionUID = -6714709327930384294L;
+	
 	ArrayList<GameThread> gThreads = new ArrayList<GameThread>();
 	GameInput input;
 			

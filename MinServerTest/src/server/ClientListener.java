@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import shared.ServerMessage;
-import shared.UniqueIDGenerator;
 
 
 public class ClientListener extends Thread {

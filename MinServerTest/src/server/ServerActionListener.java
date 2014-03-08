@@ -18,7 +18,7 @@ public class ServerActionListener implements ActionListener {
 	
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		List<String> clients = new ArrayList();
+		List<String> clients = new ArrayList<String>();
 		thread.updateClientList(clients);
 		panel.removeAll();
 		panel.add((Component)arg0.getSource());
