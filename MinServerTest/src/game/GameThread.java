@@ -45,7 +45,7 @@ public class GameThread extends Thread {
 	
 	@Override
 	public void run() {
-		host = "localhost";
+		host = "127.0.0.1";
 
 		try {
 			// get a datagram socket
@@ -55,10 +55,10 @@ public class GameThread extends Thread {
 				// send request
 				byte[] buf;
 				int inputNow = mInput; //for sync reasons (key can change mInput async)
-				buf = new byte[8+((inputNow > 0)?8:0)];
+				buf = new byte[1+4+((inputNow > 0)?8:0)];
 				ByteBuffer wrapper = ByteBuffer.wrap(buf);
-				wrapper.putInt((int) checkSum.getValue());
-				wrapper.putInt(8+((inputNow > 0)?8:0));
+				wrapper.put((byte) checkSum.getValue());
+				wrapper.putInt(1+4+((inputNow > 0)?8:0));
 				if (inputNow > 0) {
 					wrapper.putInt(mClientID);
 					wrapper.putInt(inputNow);
@@ -120,42 +120,27 @@ public class GameThread extends Thread {
 		packet = new DatagramPacket(buf, buf.length);
 		socket.receive(packet);
 		//System.out.println("Recieved a packet from sever " + packet.getPort());
-		int packetType = ByteBuffer.wrap(packet.getData(), 0, 4).getInt();
+		ByteBuffer wPacket = ByteBuffer.wrap(packet.getData());
+		byte packetType = wPacket.get();
 		switch (packetType) {
 		case ServerMessage.NORMALOP:
 			// user input is included
 			//System.out.println("Normal Operation");
-			updateState(packet.getData());
+			updateState(wPacket);
 			normal++;
 			break;
 		case ServerMessage.OUTOFSYNC:
 			// im out of sync, full state included
-			System.out.println("Out of sync at " + checkSum.getValue());
-			int actualCheckSum = ByteBuffer.wrap(packet.getData(), 4, 4)
-					.getInt();
-			decodeState(ByteBuffer.wrap(packet.getData(), 8, packet.getData().length-8));
+			System.out.println("Out of sync at " + (byte)checkSum.getValue());
+			byte actualCheckSum = wPacket.get();
+			decodeState(wPacket);
 			System.out.println("Synced to " + actualCheckSum);
 			outOfSync++;
-			break;
-		case ServerMessage.STATEREQUEST:
-			// someone needs my state
-			System.out.println("Sending off my state");
-			byte[] buf2 = new byte[bytes];
-			ByteBuffer.wrap(buf2, 0, 4).putInt((int) checkSum.getValue());
-			ByteBuffer.wrap(buf2, 4, 252).put(getChunkState(), 0, 252);
-			InetAddress address2 = InetAddress.getByName(host);
-			DatagramPacket packet2 = new DatagramPacket(buf2, buf2.length,
-					address2, 4786);
-			socket.send(packet2);
-			System.out.println("Sent off my state of "
-					+ ByteBuffer.wrap(buf2, 0, 4).getFloat());
-			handleResponse(packet, socket, buf);
 			break;
 		case ServerMessage.IDASSIGN:
 			// im just connecting, getting my unique id
 			System.out.println("Im getting my ID yay!");
-			mClientID = ByteBuffer.wrap(packet.getData(), 4, 4)
-					.getInt();
+			mClientID = wPacket.getInt();
 			System.out.println("Got the id " + mClientID);
 			handleResponse(packet, socket, buf);
 			break;
@@ -163,11 +148,9 @@ public class GameThread extends Thread {
 		}
 	}
 	
-	public void updateState(byte[] buf) {
-    	ByteBuffer wrapped = ByteBuffer.wrap(buf);
-    	wrapped.getInt(); //throw away first int not useful here
-    	int index = 8;
-    	int length = wrapped.getInt();
+	public void updateState(ByteBuffer wrapped) {
+		int index = 1+2;
+    	short length = wrapped.getShort();
     	while (index+8 <= length) {
     		int id = wrapped.getInt();
     		
@@ -196,8 +179,7 @@ public class GameThread extends Thread {
     			int bid = mUIDGen.getOtherID();
     			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7));
     		}
-    		
-    		index+=8;
+    		index += 8;
     	}
     }
     

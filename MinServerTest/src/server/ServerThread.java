@@ -129,32 +129,32 @@ public class ServerThread extends Thread {
 								badOne = true;
 							}
 							aggregator
-									.put(d.fullData, 8,
-											ByteBuffer.wrap(d.fullData, 4, 4)
-													.getInt() - 8);
-							offset += ByteBuffer.wrap(d.fullData, 4, 4)
-									.getInt() - 8;
+									.put(d.fullData, 4+1,
+											ByteBuffer.wrap(d.fullData, 1, 4)
+													.getInt() - 4-1);
+							offset += ByteBuffer.wrap(d.fullData, 1, 4)
+									.getInt() - 4-1;
 						}
 
 						/* Compute the full state buffer once. */
 						byte[] fullStateBuf = null;
 						if (badOne) {
 							goodData = dummy.getState();
-							fullStateBuf = new byte[8+goodData.length];
+							fullStateBuf = new byte[1+1+goodData.length];
 							ByteBuffer fswrapper = ByteBuffer
 									.wrap(fullStateBuf);
-							fswrapper.putInt(ServerMessage.OUTOFSYNC);
+							fswrapper.put(ServerMessage.OUTOFSYNC);
 							if (goodData != null) {
-								fswrapper.putInt(dummy.checkSum());
+								fswrapper.put((byte)dummy.checkSum());
 								fswrapper.put(goodData);
 							}
 						}
 
 						/* Compute the normal op buffer once. */
-						normalBuf = new byte[offset + 8];
+						normalBuf = new byte[offset + 1+2];
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
-						nwrapper.putInt(ServerMessage.NORMALOP);
-						nwrapper.putInt(offset + 8); // length of packet useful
+						nwrapper.put(ServerMessage.NORMALOP);
+						nwrapper.putShort((short)(offset + 1+2)); // length of packet useful
 						nwrapper.put(aggregate, 0, offset);
 
 						/* Send the appropriate packet to each client. */
@@ -181,7 +181,7 @@ public class ServerThread extends Thread {
 						clientListener.something.clear();
 					}
 					assert(normalBuf!=null);
-					dummy.updateState(normalBuf);
+					dummy.updateState(ByteBuffer.wrap(normalBuf,1,normalBuf.length - 1));
 				}
 			}
 

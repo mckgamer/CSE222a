@@ -14,7 +14,7 @@ public class DummyClient {
 	static Adler32 checkSumt = new Adler32();
 	
 	//Each thread has its own UIDGenerator
-	PerChunkUIDGenerator mUIDGen = new PerChunkUIDGenerator();
+	public static PerChunkUIDGenerator mUIDGen = new PerChunkUIDGenerator();
 	
 	public void doUpdates() {
 		
@@ -60,15 +60,13 @@ public class DummyClient {
         }
 	}
 	
-	public int checkSum() {
-		return (int)checkSumt.getValue();
+	public byte checkSum() {
+		return (byte)checkSumt.getValue();
 	}
 	
-	public void updateState(byte[] buf) {
-    	ByteBuffer wrapped = ByteBuffer.wrap(buf);
-    	wrapped.getInt(); //throw away first int not useful here
-    	int index = 8;
-    	int length = wrapped.getInt();
+	public void updateState(ByteBuffer wrapped) {
+    	int index = 1+2;
+    	short length = wrapped.getShort();
     	while (index+8 <= length) {
     		int id = wrapped.getInt();
     		
