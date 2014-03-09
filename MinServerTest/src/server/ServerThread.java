@@ -15,6 +15,9 @@ public class ServerThread extends Thread {
 	protected DatagramSocket socket = null;
 	protected int moreQuotes = 0;
 	private ClientListener clientListener;
+	
+	private TransferListener transferListener;
+	private TransferSender transferSender;
 
 	private int desiredFR = 25;
 	private int windowFR = 5;
@@ -49,6 +52,12 @@ public class ServerThread extends Thread {
 
 		clientListener = new ClientListener(destPort, "ClientListener");
 		clientListener.start();
+		
+		transferListener = new TransferListener(5555, "Transfer Listener");
+		transferListener.start();
+		transferSender = new TransferSender(5556, dummy,"Transfer Sender");
+		transferSender.start();
+		
 		socket = new DatagramSocket(listenPort);
 	}
 	
@@ -120,12 +129,20 @@ public class ServerThread extends Thread {
 						}
 
 						/* Compute the normal op buffer once. */
-						normalBuf = new byte[offset + 1+2];
+						synchronized (transferListener.transfers) {
+						normalBuf = new byte[offset + 1+2+100];
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
 						nwrapper.put(ServerMessage.NORMALOP);
 						nwrapper.putShort((short)(offset + 1+2)); // length of packet useful
 						nwrapper.put(aggregate, 0, offset);
-
+						
+						
+							for (ByteBuffer t : transferListener.transfers) {
+								nwrapper.put(t);
+							}
+							transferListener.transfers.clear();
+						}
+						
 						/* Send the appropriate packet to each client. */
 						for (Address d : clientListener.something) {
 							DatagramPacket packet;

@@ -15,8 +15,8 @@ public class GameLogic {
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();
 	
-	ArrayList<Integer> playerTransfer = new ArrayList<Integer>();
-	ArrayList<Integer> bulletTransfer = new ArrayList<Integer>();
+	public ArrayList<Player> playerTransfer = new ArrayList<Player>();
+	public ArrayList<Bullet> bulletTransfer = new ArrayList<Bullet>();
 	
 	private Adler32 checkSumt = new Adler32();
 	
@@ -25,7 +25,7 @@ public class GameLogic {
 		checkSumt.reset();
         checkSumt.update(getState());
         
-		ArrayList<Integer> playerTransfer = new ArrayList<Integer>();
+		ArrayList<Player> playerTransfer = new ArrayList<Player>();
 
 		// Drawing code goes here
 		for (Player p : players.values()) {
@@ -34,20 +34,20 @@ public class GameLogic {
 			p.xvel /= 1.03;
 			p.yvel /= 1.03;
 			if (p.x > 500 || p.x < 0 || p.y < 0 || p.y > 500) {
-				playerTransfer.add(p.entityID);
+				playerTransfer.add(p);
 			}
 		}
-		for (Integer p : playerTransfer) {
-			if (players.get(p).x > 500) { players.get(p).x-= 500; }
-			if (players.get(p).x < 0) { players.get(p).x+= 500; }
-			if (players.get(p).y > 500) { players.get(p).y-= 500; }
-			if (players.get(p).y < 0) { players.get(p).y+= 500; }
+		for (Player p : playerTransfer) {
+			if (p.x > 500) { (p).x-= 500; }
+			if ((p).x < 0) { (p).x+= 500; }
+			if ((p).y > 500) { (p).y-= 500; }
+			if ((p).y < 0) { (p).y+= 500; }
 			//players.remove(p);
 		}
 		this.playerTransfer.addAll(playerTransfer);
 		// if p leaves my boundaries then transfer it to another server
 
-		ArrayList<Integer> bulletTransfer = new ArrayList<Integer>();
+		ArrayList<Bullet> bulletTransfer = new ArrayList<Bullet>();
 		ArrayList<Integer> kill = new ArrayList<Integer>();
 		for (Bullet b : bullets.values()) {
 			b.x += b.xvel;
@@ -57,20 +57,22 @@ public class GameLogic {
 				kill.add(b.entityID);
 			}
 			if (b.x > 500 || b.x < 0 || b.y < 0 || b.y > 500) {
-				bulletTransfer.add(b.entityID);
+				bulletTransfer.add(b);
 			}
 			// if b leaves my boundaries then transfer it to another server
 		}
-		for (Integer b : bulletTransfer) {
-			if (bullets.get(b).x > 500) { bullets.get(b).x-= 500; }
-			if (bullets.get(b).x < 0) { bullets.get(b).x+= 500; }
-			if (bullets.get(b).y > 500) { bullets.get(b).y-= 500; }
-			if (bullets.get(b).y < 0) { bullets.get(b).y+= 500; }
+		for (Bullet b : bulletTransfer) {
+			if ((b).x > 500) { (b).x-= 500; }
+			if ((b).x < 0) { (b).x+= 500; }
+			if ((b).y > 500) { (b).y-= 500; }
+			if ((b).y < 0) { (b).y+= 500; }
 			//bullets.remove(b);
 		}
 		this.bulletTransfer.addAll(bulletTransfer);
-		for (Integer b : kill) {
-			bullets.remove(b);
+		synchronized (bullets) {
+			for (Integer b : kill) {
+				bullets.remove(b);
+			}
 		}
 	}
 	
@@ -84,7 +86,9 @@ public class GameLogic {
     		
     		if (!players.containsKey(id)) {
     			System.out.println("Player id "+id);
-    			players.put(id,new Player(id));
+    			synchronized (players) {
+    				players.put(id,new Player(id));
+    			}
     		}
     		
     		if ((input & GameInput.UP) != 0){
@@ -103,8 +107,10 @@ public class GameLogic {
     		}
     		if ((input & GameInput.FIRE) != 0){
     			int bid = mUIDGen.getOtherID();
-    			bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7));
-    		}
+    			synchronized (bullets) {
+    				bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7));
+    			}
+			}
     		
     		index+=8;
     	}
@@ -135,7 +141,9 @@ public class GameLogic {
     		if (!players.containsKey(id)) {
     			Player temp = new Player(id);
     			temp.decode(wrapped);
-    			players.put(id,temp);
+    			synchronized (players) {
+    				players.put(id,temp);
+    			}
     		} else {
     			players.get(id).decode(wrapped);
     		}
@@ -147,7 +155,9 @@ public class GameLogic {
     		if (!bullets.containsKey(id)) {
     			Bullet temp = new Bullet(id);
     			temp.decode(wrapped);
-    			bullets.put(id,temp);
+    			synchronized (bullets) {
+    				bullets.put(id,temp);
+    			}
     		} else {
     			bullets.get(id).decode(wrapped);
     		}

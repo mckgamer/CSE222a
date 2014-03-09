@@ -58,7 +58,6 @@ public class UIThread extends JPanel {
         }
     }
 
-	//TODO there is a concurrent mod error here for each gThread (looping over players/bullets)
     public void paintComponent(Graphics g)  // draw graphics in the panel
     {
         int width = getWidth();             // width of window in pixels
@@ -97,30 +96,33 @@ public class UIThread extends JPanel {
             int cY = gThread.yOffSet;//-((gThread.players.get(gThread.mClientID)!=null)?(int)gThread.players.get(gThread.mClientID).y:0)+height/2;
             
 	        // Drawing code goes here
-	        for (Player p: gThread.gameState.players.values()) {
-	        	if (gThread == myPlayer && gThread.mClientID == p.entityID) {
-	        		g.setColor(new Color(255,0,0));
-	        	}
-	        	
-	        	int brX = (int)(9*Math.cos(p.angle+Math.PI/3));
-	        	int brY = (int)(9*Math.sin(p.angle+Math.PI/3));
-	        	int blX = (int)(9*Math.cos(p.angle-Math.PI/3));
-	        	int blY = (int)(9*Math.sin(p.angle-Math.PI/3));
-	        	int tX = (int)(14*Math.cos(p.angle));
-	        	int tY = (int)(14*Math.sin(p.angle));
-	        	g.drawLine((int)p.x+tX+cX+pX, (int)p.y+tY+cY+pY, (int)p.x+brX+cX+pX, (int)p.y+brY+cY+pY); 
-	        	g.drawLine((int)p.x+tX+cX+pX, (int)p.y+tY+cY+pY, (int)p.x+blX+cX+pX, (int)p.y+blY+cY+pY);  
-	        	g.drawLine((int)p.x+blX+cX+pX, (int)p.y+blY+cY+pY, (int)p.x+brX+cX+pX, (int)p.y+brY+cY+pY); 
-	        	if (gThread == myPlayer && gThread.mClientID == p.entityID) {
-	        		g.setColor(new Color(0,0,0));
-	        		
-	        	}
-	        }
+            synchronized (gThread.gameState.players) {
+		        for (Player p: gThread.gameState.players.values()) {
+		        	if (gThread == myPlayer && gThread.mClientID == p.entityID) {
+		        		g.setColor(new Color(255,0,0));
+		        	}
+		        	
+		        	int brX = (int)(9*Math.cos(p.angle+Math.PI/3));
+		        	int brY = (int)(9*Math.sin(p.angle+Math.PI/3));
+		        	int blX = (int)(9*Math.cos(p.angle-Math.PI/3));
+		        	int blY = (int)(9*Math.sin(p.angle-Math.PI/3));
+		        	int tX = (int)(14*Math.cos(p.angle));
+		        	int tY = (int)(14*Math.sin(p.angle));
+		        	g.drawLine((int)p.x+tX+cX+pX, (int)p.y+tY+cY+pY, (int)p.x+brX+cX+pX, (int)p.y+brY+cY+pY); 
+		        	g.drawLine((int)p.x+tX+cX+pX, (int)p.y+tY+cY+pY, (int)p.x+blX+cX+pX, (int)p.y+blY+cY+pY);  
+		        	g.drawLine((int)p.x+blX+cX+pX, (int)p.y+blY+cY+pY, (int)p.x+brX+cX+pX, (int)p.y+brY+cY+pY); 
+		        	if (gThread == myPlayer && gThread.mClientID == p.entityID) {
+		        		g.setColor(new Color(0,0,0));
+		        		
+		        	}
+		        }
+            }
 	        
-	        
-	        for (Bullet b: gThread.gameState.bullets.values()) {
-	        	g.drawLine((int)b.x+cX+pX,(int)b.y+cY+pY,(int)(b.x+b.xvel)+cX+pX,(int)(b.y+b.yvel)+cY+pY);
-	        }
+            synchronized (gThread.gameState.bullets) {
+		        for (Bullet b: gThread.gameState.bullets.values()) {
+		        	g.drawLine((int)b.x+cX+pX,(int)b.y+cY+pY,(int)(b.x+b.xvel)+cX+pX,(int)(b.y+b.yvel)+cY+pY);
+		        }
+            }
         }
     }
 
