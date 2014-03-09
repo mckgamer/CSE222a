@@ -12,8 +12,6 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
-import shared.ServerMessage;
-
 public class TransferSender extends Thread {
 	
 	public DatagramSocket socket = null;
