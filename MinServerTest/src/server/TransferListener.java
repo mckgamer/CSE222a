@@ -34,6 +34,7 @@ public class TransferListener extends Thread {
 				packet = new DatagramPacket(buf, buf.length);
 				socket.receive(packet);
 				recieved = true;
+				System.out.println("YAY got transfers from " + packet.getPort());
 
 				ByteBuffer tData = ByteBuffer.wrap(packet.getData(),0,40); //TODO remove 40
 				synchronized (transfers) {

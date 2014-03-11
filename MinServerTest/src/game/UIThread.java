@@ -35,10 +35,10 @@ public class UIThread extends JPanel {
         application.setSize(700, 700);         // window is 500 pixels wide, 400 high
         application.setVisible(true); 
         
-        gThreads.add(new GameThread(4445,-250,-250));
-        gThreads.add(new GameThread(4445,250,-250));
-        gThreads.add(new GameThread(4445,-250,250));
-        gThreads.add(new GameThread(4445,250,250));
+        gThreads.add(new GameThread(4440,-250,-250));
+        gThreads.add(new GameThread(4441,250,-250));
+        gThreads.add(new GameThread(4442,-250,250));
+        gThreads.add(new GameThread(4443,250,250));
         
         for (GameThread g: gThreads) {
         	g.start();	

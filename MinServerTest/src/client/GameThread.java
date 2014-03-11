@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 import shared.ServerMessage;
@@ -17,7 +18,7 @@ public class GameThread extends Thread {
 	
 	boolean isRunning = true;
 	int bytes = 1500;
-	String host;
+	InetAddress host;
 	
 	public int mClientID = 0;
 	public int mInput = 0;
@@ -39,7 +40,12 @@ public class GameThread extends Thread {
 	
 	@Override
 	public void run() {
-		host = "127.0.0.1";
+		try {
+			host = InetAddress.getByName("127.0.0.1");
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		try {
 			// get a datagram socket
@@ -59,9 +65,8 @@ public class GameThread extends Thread {
 					mInput = mInput & ~GameInput.FIRE; //TODO decouple this
 				}
 				
-				InetAddress address = InetAddress.getByName(host);
 				DatagramPacket packet = new DatagramPacket(buf, buf.length,
-						address, port);
+						host, port);
 				socket.send(packet);
 	
 				// get response
@@ -118,6 +123,11 @@ public class GameThread extends Thread {
     
     public void setClientID(int id) {
     	mClientID = id;
+    }
+    
+    public void setHost(InetAddress host, int port) {
+    	this.host = host;
+    	this.port = port;
     }
 
 }

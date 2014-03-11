@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.Adler32;
 
+import server.Neighbor;
+import server.ServerAddress;
 import shared.PerChunkUIDGenerator;
 
 public class GameLogic {
@@ -15,17 +17,33 @@ public class GameLogic {
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();
 	
-	public ArrayList<Player> playerTransfer = new ArrayList<Player>();
-	public ArrayList<Bullet> bulletTransfer = new ArrayList<Bullet>();
+	public HashMap<Neighbor,ServerAddress> neighbors = new HashMap<Neighbor,ServerAddress>();
+
+	public HashMap<Neighbor,ArrayList<Player>> playerTransfer = new HashMap<Neighbor,ArrayList<Player>>();
+	public HashMap<Neighbor,ArrayList<Bullet>> bulletTransfer = new HashMap<Neighbor,ArrayList<Bullet>>();
 	
 	private Adler32 checkSumt = new Adler32();
 	
+	
+	public GameLogic() {
+		
+		
+		synchronized(playerTransfer) {
+			playerTransfer.put(Neighbor.TOP,new ArrayList<Player>());
+			playerTransfer.put(Neighbor.BOTTOM,new ArrayList<Player>());
+			playerTransfer.put(Neighbor.LEFT,new ArrayList<Player>());
+			playerTransfer.put(Neighbor.RIGHT,new ArrayList<Player>());
+			
+			bulletTransfer.put(Neighbor.TOP,new ArrayList<Bullet>());
+			bulletTransfer.put(Neighbor.BOTTOM,new ArrayList<Bullet>());
+			bulletTransfer.put(Neighbor.LEFT,new ArrayList<Bullet>());
+			bulletTransfer.put(Neighbor.RIGHT,new ArrayList<Bullet>());
+		}
+	}
 	public void doPhysics() {
 		
 		checkSumt.reset();
         checkSumt.update(getState());
-        
-		ArrayList<Player> playerTransfer = new ArrayList<Player>();
 
 		// Drawing code goes here
 		for (Player p : players.values()) {
@@ -34,20 +52,16 @@ public class GameLogic {
 			p.xvel /= 1.03;
 			p.yvel /= 1.03;
 			if (p.x > 500 || p.x < 0 || p.y < 0 || p.y > 500) {
-				playerTransfer.add(p);
+				if (p.x > 500) { (p).x-= 500; playerTransfer.get(Neighbor.RIGHT).add(p); }
+				if ((p).x < 0) { (p).x+= 500; playerTransfer.get(Neighbor.LEFT).add(p); }
+				if ((p).y > 500) { (p).y-= 500; playerTransfer.get(Neighbor.BOTTOM).add(p); }
+				if ((p).y < 0) { (p).y+= 500; playerTransfer.get(Neighbor.TOP).add(p); }
+				players.remove(p);
 			}
 		}
-		for (Player p : playerTransfer) {
-			if (p.x > 500) { (p).x-= 500; }
-			if ((p).x < 0) { (p).x+= 500; }
-			if ((p).y > 500) { (p).y-= 500; }
-			if ((p).y < 0) { (p).y+= 500; }
-			players.remove(p);
-		}
-		this.playerTransfer.addAll(playerTransfer);
+
 		// if p leaves my boundaries then transfer it to another server
 
-		ArrayList<Bullet> bulletTransfer = new ArrayList<Bullet>();
 		ArrayList<Integer> kill = new ArrayList<Integer>();
 		for (Bullet b : bullets.values()) {
 			b.x += b.xvel;
@@ -57,18 +71,15 @@ public class GameLogic {
 				kill.add(b.entityID);
 			}
 			if (b.x > 500 || b.x < 0 || b.y < 0 || b.y > 500) {
-				bulletTransfer.add(b);
+				if ((b).x > 500) { (b).x-= 500; bulletTransfer.get(Neighbor.RIGHT).add(b); }
+				if ((b).x < 0) { (b).x+= 500; bulletTransfer.get(Neighbor.LEFT).add(b); }
+				if ((b).y > 500) { (b).y-= 500; bulletTransfer.get(Neighbor.BOTTOM).add(b); }
+				if ((b).y < 0) { (b).y+= 500; bulletTransfer.get(Neighbor.TOP).add(b); }
+				kill.add(b.entityID);
 			}
 			// if b leaves my boundaries then transfer it to another server
 		}
-		for (Bullet b : bulletTransfer) {
-			if ((b).x > 500) { (b).x-= 500; }
-			if ((b).x < 0) { (b).x+= 500; }
-			if ((b).y > 500) { (b).y-= 500; }
-			if ((b).y < 0) { (b).y+= 500; }
-			bullets.remove(b);
-		}
-		this.bulletTransfer.addAll(bulletTransfer);
+
 		synchronized (bullets) {
 			for (Integer b : kill) {
 				bullets.remove(b);

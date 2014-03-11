@@ -11,12 +11,14 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class TransferSender extends Thread {
 	
 	public DatagramSocket socket = null;
-	public ArrayList<Player> ptransfers;
-	public ArrayList<Bullet> btransfers;
+	public HashMap<Neighbor,ArrayList<Player>> ptransfers;
+	public HashMap<Neighbor,ArrayList<Bullet>> btransfers;
+	public HashMap<Neighbor,ServerAddress> neighbors;
 	private boolean condition = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
@@ -26,6 +28,7 @@ public class TransferSender extends Thread {
 		socket = new DatagramSocket();
 		ptransfers = dummy.playerTransfer;
 		btransfers = dummy.bulletTransfer;
+		neighbors = dummy.neighbors;
 	}
 
 	public void kill() {
@@ -38,28 +41,33 @@ public class TransferSender extends Thread {
 			try {
 				synchronized (ptransfers) {
 					
-					if (ptransfers.size()>0 || btransfers.size()>0) {
-						byte[] buftemp = new byte[1500]; //TODO right size
-	                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
-	                	//TODO encode total size somehow
-	                	wrapped.putInt(ptransfers.size());
-	                	for (Player p : ptransfers) {
-	                		wrapped.put(p.encode());
-	                	}
-	                	
-	                	wrapped.putInt(btransfers.size());
-	                	for (Bullet b : btransfers) {
-	                		wrapped.put(b.encode());
-	                	}
-	    				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, InetAddress.getByName("localhost"), 5555);
-	    				System.out.println("Sending out transfers");
-	    				socket.send(packet2);
+					for (Neighbor neigh : ptransfers.keySet()) {
+						ArrayList<Player> ptrans = ptransfers.get(neigh);
+						ArrayList<Bullet> btrans = btransfers.get(neigh);
+						if ((ptrans != null && btrans != null) && (ptrans.size()>0 || btrans.size()>0)) {
+							byte[] buftemp = new byte[1500]; //TODO right size
+		                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
+		                	//TODO encode total size somehow
+		                	wrapped.putInt(ptrans.size());
+		                	for (Player p : ptrans) {
+		                		wrapped.put(p.encode());
+		                	}
+		                	
+		                	wrapped.putInt(btrans.size());
+		                	for (Bullet b : btrans) {
+		                		wrapped.put(b.encode());
+		                	}
+		    				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, neighbors.get(neigh).ip, neighbors.get(neigh).port);
+		    				System.out.println("Sending out transfers to "+neighbors.get(neigh).port);
+		    				socket.send(packet2);
+		    				
+		    				ptrans.clear();
+							btrans.clear();
+						}
 					}
-					ptransfers.clear();
-					btransfers.clear();
+	
+					recieved = false;
 				}
-
-				recieved = false;
 
 			} catch (IOException e) {
 				e.printStackTrace();

@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import shared.ServerMessage;
@@ -28,7 +30,7 @@ public class ServerThread extends Thread {
 	int bytes = 256;
 
 	static GameLogic dummy;
-
+	
 	public void kill() {
 		if (isRunning()) {
 			isRunning = false;
@@ -59,6 +61,17 @@ public class ServerThread extends Thread {
 		transferSender.start();
 
 		socket = new DatagramSocket();
+		
+		int me = listenPort%4;
+		//neighbors.put(Neighbor.TOPLEFT, new ServerAddress("localhost",5550+3-me));
+		dummy.neighbors.put(Neighbor.TOP, new ServerAddress("localhost",5550+((2+me)%4)));
+		//neighbors.put(Neighbor.TOPRIGHT, new ServerAddress("localhost",5550+3-me));
+		dummy.neighbors.put(Neighbor.LEFT, new ServerAddress("localhost",5550+(Math.abs((me-5))%4)));
+		dummy.neighbors.put(Neighbor.RIGHT, new ServerAddress("localhost",5550+(Math.abs((me-5))%4)));
+		//neighbors.put(Neighbor.BOTTOMLEFT, new ServerAddress("localhost",5550+3-me));
+		dummy.neighbors.put(Neighbor.BOTTOM, new ServerAddress("localhost",5550+((2+me)%4)));
+		//neighbors.put(Neighbor.BOTTOMRIGHT, new ServerAddress("localhost",5550+3-me));
+		
 	}
 
 	public void updateClientList(List<String> clients) {
