@@ -43,8 +43,8 @@ import javax.swing.JPanel;
  
 public class Server {
 	
-	static int destPort = 4445;
-	static int listenPort = 4796;
+	static int listenPort = 4445;
+	static int transferPort = 5555;
 	
     public static void main(String[] args) throws IOException {
     	//Create a bunch of server threads
@@ -53,11 +53,11 @@ public class Server {
     	boolean creating = true;
     	while (creating) {
 	    	try {
-	    		servers.add(new ServerThread(listenPort, destPort));
+	    		servers.add(new ServerThread(listenPort, transferPort));
 	    		creating=false;
 	    	} catch (IOException e) {
 	    		listenPort++;
-	    		destPort++;
+	    		transferPort++;
 	    	}
     	}
     	

@@ -42,7 +42,7 @@ public class GameLogic {
 			if ((p).x < 0) { (p).x+= 500; }
 			if ((p).y > 500) { (p).y-= 500; }
 			if ((p).y < 0) { (p).y+= 500; }
-			//players.remove(p);
+			players.remove(p);
 		}
 		this.playerTransfer.addAll(playerTransfer);
 		// if p leaves my boundaries then transfer it to another server
@@ -66,7 +66,7 @@ public class GameLogic {
 			if ((b).x < 0) { (b).x+= 500; }
 			if ((b).y > 500) { (b).y-= 500; }
 			if ((b).y < 0) { (b).y+= 500; }
-			//bullets.remove(b);
+			bullets.remove(b);
 		}
 		this.bulletTransfer.addAll(bulletTransfer);
 		synchronized (bullets) {
@@ -114,7 +114,34 @@ public class GameLogic {
     		
     		index+=8;
     	}
-    	//recieveTransfer(wrapped);
+    	
+    	//Recieve Transfer
+    	if (wrapped.get() > 0) { //got a transfer
+    		System.out.println("Client got transfer processing!");
+    		int pCount = wrapped.getInt();
+        	for (int p=0;p<pCount;p++) {
+        		System.out.println("PLAYA!");
+        		int id = wrapped.getInt();
+    			Player temp = new Player(id);
+    			temp.decode(wrapped);
+    			synchronized (players) {
+    				players.put(id,temp);
+    			}
+        	}
+    		
+	    	int bCount = wrapped.getInt();
+	    	for (int b=0;b<bCount;b++) {
+	    		System.out.println("BULLET!");
+	    		int id = wrapped.getInt();
+				Bullet temp = new Bullet(id);
+				temp.decode(wrapped);
+				temp.x += temp.xvel;
+				temp.y += temp.yvel;
+				synchronized (bullets) {
+					bullets.put(id,temp);
+				}
+	    	}
+    	}
     }
 	
 	public byte[] getState() {

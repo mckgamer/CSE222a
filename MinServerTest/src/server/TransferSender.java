@@ -21,9 +21,9 @@ public class TransferSender extends Thread {
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 
-	public TransferSender(int port, GameLogic dummy, String name) throws SocketException {
+	public TransferSender(GameLogic dummy, String name) throws SocketException {
 		super(name);
-		socket = new DatagramSocket(port);
+		socket = new DatagramSocket();
 		ptransfers = dummy.playerTransfer;
 		btransfers = dummy.bulletTransfer;
 	}
@@ -41,7 +41,7 @@ public class TransferSender extends Thread {
 					if (ptransfers.size()>0 || btransfers.size()>0) {
 						byte[] buftemp = new byte[1500]; //TODO right size
 	                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
-	                	
+	                	//TODO encode total size somehow
 	                	wrapped.putInt(ptransfers.size());
 	                	for (Player p : ptransfers) {
 	                		wrapped.put(p.encode());

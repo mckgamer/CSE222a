@@ -39,26 +39,26 @@ public class ServerThread extends Thread {
 		return isRunning;
 	}
 
-	public ServerThread(int listenPort, int destPort) throws IOException {
-		this(listenPort, destPort, "ServerThread-" + listenPort + "<"
-				+ destPort);
+	public ServerThread(int listenPort, int transferPort) throws IOException {
+		this(listenPort, transferPort,"ServerThread-" + listenPort + "<"
+				+ transferPort);
 	}
 
-	public ServerThread(int listenPort, int destPort, String name)
+	public ServerThread(int listenPort, int transferPort, String name)
 			throws IOException {
 		super(name);
 
 		dummy = new GameLogic();
 
-		clientListener = new ClientListener(destPort, "ClientListener");
+		clientListener = new ClientListener(listenPort, "ClientListener");
 		clientListener.start();
 
-		transferListener = new TransferListener(5555, "Transfer Listener");
+		transferListener = new TransferListener(transferPort, "Transfer Listener");
 		transferListener.start();
-		transferSender = new TransferSender(5556, dummy, "Transfer Sender");
+		transferSender = new TransferSender(dummy, "Transfer Sender");
 		transferSender.start();
 
-		socket = new DatagramSocket(listenPort);
+		socket = new DatagramSocket();
 	}
 
 	public void updateClientList(List<String> clients) {
@@ -132,7 +132,7 @@ public class ServerThread extends Thread {
 
 					/* Compute the normal op buffer once. */
 					synchronized (transferListener.transfers) {
-						normalBuf = new byte[offset + 1 + 2 + 50];
+						normalBuf = new byte[offset + 1 + 2+80]; //TODO fixme
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
 						nwrapper.put(ServerMessage.NORMALOP);
 						nwrapper.putShort((short) (offset + 1 + 2)); // length
@@ -141,6 +141,7 @@ public class ServerThread extends Thread {
 																		// useful
 						nwrapper.put(aggregate, 0, offset);
 
+						nwrapper.put((byte)transferListener.transfers.size());
 						for (ByteBuffer t : transferListener.transfers) {
 							nwrapper.put(t);
 						}

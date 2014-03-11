@@ -35,7 +35,7 @@ public class TransferListener extends Thread {
 				socket.receive(packet);
 				recieved = true;
 
-				ByteBuffer tData = ByteBuffer.wrap(packet.getData(),0,ByteBuffer.wrap(packet.getData(),0,4).getInt());
+				ByteBuffer tData = ByteBuffer.wrap(packet.getData(),0,40); //TODO remove 40
 				synchronized (transfers) {
 					transfers.add(tData);
 				}
