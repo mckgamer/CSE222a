@@ -1,5 +1,7 @@
 package game;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -156,7 +158,7 @@ public class GameLogic {
     }
 	
 	public byte[] getState() {
-		byte buf[] = new byte[12+players.size()*Player.encodeSize()+bullets.size()*Bullet.encodeSize()];
+		byte buf[] = new byte[12+players.size()*Player.encodeSize()+bullets.size()*Bullet.encodeSize()+32];
 		ByteBuffer wrapped = ByteBuffer.wrap(buf);
 		wrapped.putInt(mUIDGen.softOther());
 		wrapped.putInt(players.size());
@@ -167,6 +169,14 @@ public class GameLogic {
     	for (Bullet b : bullets.values()) {
     		wrapped.put(b.encode());
     	}
+    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.TOP).ip.getAddress()).getInt());
+    	wrapped.putInt(neighbors.get(Neighbor.TOP).port);
+    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.LEFT).ip.getAddress()).getInt());
+    	wrapped.putInt(neighbors.get(Neighbor.LEFT).port);
+    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.RIGHT).ip.getAddress()).getInt());
+    	wrapped.putInt(neighbors.get(Neighbor.RIGHT).port);
+    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.BOTTOM).ip.getAddress()).getInt());
+    	wrapped.putInt(neighbors.get(Neighbor.BOTTOM).port);
 		return buf;
 	}
 	
@@ -200,6 +210,24 @@ public class GameLogic {
     			bullets.get(id).decode(wrapped);
     		}
     	}
+    	try {
+    		if (neighbors.get(Neighbor.TOP) == null) { neighbors.put(Neighbor.TOP,new ServerAddress("127.0.0.1",4444)); }
+    		if (neighbors.get(Neighbor.LEFT) == null) { neighbors.put(Neighbor.LEFT,new ServerAddress("127.0.0.1",4444)); }
+    		if (neighbors.get(Neighbor.RIGHT) == null) { neighbors.put(Neighbor.RIGHT,new ServerAddress("127.0.0.1",4444)); }
+    		if (neighbors.get(Neighbor.BOTTOM) == null) { neighbors.put(Neighbor.BOTTOM,new ServerAddress("127.0.0.1",4444)); }
+			neighbors.get(Neighbor.TOP).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
+	    	neighbors.get(Neighbor.TOP).port = wrapped.getInt();
+	    	
+	    	neighbors.get(Neighbor.LEFT).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
+	    	neighbors.get(Neighbor.LEFT).port = wrapped.getInt();
+	    	neighbors.get(Neighbor.RIGHT).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
+	    	neighbors.get(Neighbor.RIGHT).port = wrapped.getInt();
+	    	neighbors.get(Neighbor.BOTTOM).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
+	    	neighbors.get(Neighbor.BOTTOM).port = wrapped.getInt();
+    	} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 	
 	public byte checkSum() {
