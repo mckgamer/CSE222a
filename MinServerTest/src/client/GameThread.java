@@ -40,15 +40,15 @@ public class GameThread extends Thread {
 	
 	@Override
 	public void run() {
-		/*
+		
 		try {
 			host = InetAddress.getByName("127.0.0.1");
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		*/
-		host = null;
+		
+		//host = null;
 
 		try {
 			// get a datagram socket

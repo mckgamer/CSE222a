@@ -1,5 +1,7 @@
 package server;
 
+import game.GameLogic;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -15,16 +17,18 @@ public class ClientListener extends Thread {
 	
 	public DatagramSocket socket = null;
 	public HashMap<String, Long> lastTalked;
-	public ArrayList<Address> something = new ArrayList<Address>();
+	public ArrayList<Address> clientAddresses = new ArrayList<Address>();
 	private boolean condition = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
+	private GameLogic myLogic;
 	
-	public ClientListener(int port, String name) throws SocketException {
+	public ClientListener(GameLogic logic, int port, String name) throws SocketException {
         super(name);
         socket = new DatagramSocket(port);
         
         lastTalked = new HashMap<String,Long>();
+        myLogic = logic;
     }
 	
 	public void kill() {
@@ -47,15 +51,22 @@ public class ClientListener extends Thread {
                 	byte[] buftemp = new byte[5];
                 	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
                 	wrapped.put(ServerMessage.IDASSIGN);
-                	wrapped.putInt(ServerThread.dummy.mUIDGen.getID()); //TODO fix for multi servers per process
+                	wrapped.putInt(myLogic.mUIDGen.getID()); //TODO fix for multi servers per process
     				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, packet.getAddress(), packet.getPort());
     				System.out.println("Sending out ID to new CLient");
     				socket.send(packet2);
                 	lastTalked.put(packet.getAddress().toString()+packet.getPort(), System.currentTimeMillis());
                 }
 
-                synchronized (something) {
-                	something.add(new Address(packet.getAddress(),packet.getPort(),ByteBuffer.wrap(buf).get(),buf));
+                synchronized (clientAddresses) {
+                	clientAddresses.add(
+            			new Address(
+	            			packet.getAddress(),
+	            			packet.getPort(),
+	            			ByteBuffer.wrap(buf).get(),
+	            			buf
+            			)
+        			);
                 }
                 
 
