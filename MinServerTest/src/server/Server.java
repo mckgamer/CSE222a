@@ -40,6 +40,8 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import shared.LogFile;
  
 public class Server {
 
@@ -48,6 +50,7 @@ public class Server {
 	static int listenPort = 4440;
 	static int transferPort = 5550;
 	static final int NUM_THREADS = 1;
+	public static LogFile log = new LogFile("Server");
 	
     public static void main(String[] args) throws IOException {
     	//Create a bunch of server threads
@@ -97,9 +100,10 @@ public class Server {
     }
     
     public static void close() {
-    	System.out.println("Killing servers");
+    	log.println("Killing servers");
     	for(ServerThread server : servers) {
         	server.kill();
         }
+    	log.close();
     }
 }

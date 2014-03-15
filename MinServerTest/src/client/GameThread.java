@@ -14,7 +14,7 @@ import shared.ServerMessage;
 
 public class GameThread extends Thread {
 	
-	public GameLogic gameState = new GameLogic();
+	public GameLogic gameState = new GameLogic(NewClient.log);
 	
 	boolean isRunning = true;
 	int bytes = 1500;
@@ -39,29 +39,15 @@ public class GameThread extends Thread {
 		this.port = port;
 	}
 	
-<<<<<<< HEAD
 	@Override
 	public void run() {
-		
-=======
-	@Override
-	public void run() {
->>>>>>> FETCH_HEAD
 		try {
 			host = InetAddress.getByName("127.0.0.1");
 			//host = InetAddress.getByName("137.110.53.55");
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-<<<<<<< HEAD
 		}
-		
-		//host = null;
-=======
-		}
-		
-		host = null;
->>>>>>> FETCH_HEAD
 
 		try {
 			// get a datagram socket
@@ -129,17 +115,17 @@ public class GameThread extends Thread {
 			break;
 		case ServerMessage.OUTOFSYNC:
 			// im out of sync, full state included
-			System.out.println("Out of sync at " + gameState.checkSum());
+			NewClient.log.println("Out of sync at " + gameState.checkSum());
 			byte actualCheckSum = wPacket.get();
 			gameState.decodeState(wPacket);
-			System.out.println("Synced to " + actualCheckSum);
+			NewClient.log.println("Synced to " + actualCheckSum);
 			outOfSync++;
 			break;
 		case ServerMessage.IDASSIGN:
 			// im just connecting, getting my unique id
-			System.out.println("Im getting my ID yay!");
+			NewClient.log.println("Im getting my ID yay!");
 			mClientID = wPacket.getInt();
-			System.out.println("Got the id " + mClientID);
+			NewClient.log.println("Got the id " + mClientID);
 			handleResponse(packet, socket, buf);
 			break;
 

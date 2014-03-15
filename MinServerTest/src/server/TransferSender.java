@@ -62,7 +62,7 @@ public class TransferSender extends Thread {
 		                		wrapped.put(b.encode());
 		                	}
 		    				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, neighbors.get(neigh).ip, neighbors.get(neigh).port);
-		    				System.out.println("Sending out transfers to "+neighbors.get(neigh).port);
+		    				Server.log.println("Sending out transfers to "+neighbors.get(neigh).port);
 		    				socket.send(packet2);
 		    				
 		    				ptrans.clear();
@@ -79,7 +79,7 @@ public class TransferSender extends Thread {
 			}
 		}
 		socket.close();
-		System.out.println("Dead Really");
+		Server.log.println("Dead Really");
 	}
 
 }

@@ -36,7 +36,7 @@ public class TransferListener extends Thread {
 				packet = new DatagramPacket(buf, buf.length);
 				socket.receive(packet);
 				recieved = true;
-				System.out.println("YAY got transfers from " + packet.getPort());
+				Server.log.println("YAY got transfers from " + packet.getPort());
 
 				ByteBuffer tData = ByteBuffer.wrap(packet.getData(),0,40); //TODO remove 40
 				
@@ -48,8 +48,11 @@ public class TransferListener extends Thread {
 						transfers.add(tData);
 					}
 					break;
+				case ServerMessage.NEIGHBORNOTE:
+					//We have a new neighbor!
+					break;
 				default:
-					System.out.println("Unknown message type " + messageType);
+					Server.log.println("Unknown message type " + messageType);
 				}
 
 				recieved = false;
@@ -60,7 +63,7 @@ public class TransferListener extends Thread {
 			}
 		}
 		socket.close();
-		System.out.println("Dead Really");
+		Server.log.println("Dead Really");
 	}
 
 }

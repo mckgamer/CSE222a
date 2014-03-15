@@ -50,7 +50,7 @@ public class ServerThread extends Thread {
 			throws IOException {
 		super(name);
 
-		dummy = new GameLogic();
+		dummy = new GameLogic(Server.log);
 
 		clientListener = new ClientListener(dummy, listenPort, "ClientListener" + listenPort);
 		clientListener.start();
@@ -101,7 +101,7 @@ public class ServerThread extends Thread {
 				windowPackets = 0;
 			}
 			if (System.currentTimeMillis() - longTime > 1000) {
-				System.out.println("PPS: " + totalPackets);
+				Server.log.println("PPS: " + totalPackets);
 				assert (totalPackets > 65);
 				totalPackets = 0;
 				longTime = System.currentTimeMillis();
@@ -169,7 +169,7 @@ public class ServerThread extends Thread {
 									normalBuf.length, d.address, d.port);
 						} else {
 							assert (fullStateBuf != null);
-							System.out.println("Sending out "
+							Server.log.println("Sending out "
 									+ dummy.checkSum());
 							packet = new DatagramPacket(fullStateBuf,
 									fullStateBuf.length, d.address, d.port);
@@ -189,7 +189,7 @@ public class ServerThread extends Thread {
 			}
 		}
 
-		System.out.println("Dead");
+		Server.log.println("Dead");
 		clientListener.kill();
 	}
 

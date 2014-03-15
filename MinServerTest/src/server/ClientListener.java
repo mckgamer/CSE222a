@@ -53,7 +53,7 @@ public class ClientListener extends Thread {
                 	wrapped.put(ServerMessage.IDASSIGN);
                 	wrapped.putInt(myLogic.mUIDGen.getID()); //TODO fix for multi servers per process
     				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, packet.getAddress(), packet.getPort());
-    				System.out.println("Sending out ID to new CLient");
+    				Server.log.println("Sending out ID to new CLient");
     				socket.send(packet2);
                 	lastTalked.put(packet.getAddress().toString()+packet.getPort(), System.currentTimeMillis());
                 }
@@ -78,7 +78,7 @@ public class ClientListener extends Thread {
             }
         } 
         socket.close();
-        System.out.println("Dead Really");
+        Server.log.println("Dead Really");
     }
 
 }

@@ -4,6 +4,7 @@ import java.awt.event.KeyListener;
 import java.util.Random;
 
 import client.GameThread;
+import client.NewClient;
 
 
 public class GameInput implements KeyListener {
@@ -88,23 +89,23 @@ public class GameInput implements KeyListener {
 		switch(e.getKeyCode()) {
 		case KeyEvent.VK_SPACE:
 			game.mInput = game.mInput | FIRE;
-			System.out.println("Shoot Event");
+			NewClient.log.println("Shoot Event");
 			break;
 		case KeyEvent.VK_LEFT:
 			game.mInput = game.mInput | LEFT;
-			System.out.println("Rotate Event");
+			NewClient.log.println("Rotate Event");
 			break;
 		case KeyEvent.VK_RIGHT:
 			game.mInput = game.mInput | RIGHT;
-			System.out.println("Rotate Event");
+			NewClient.log.println("Rotate Event");
 			break;
 		case KeyEvent.VK_UP:
 			game.mInput = game.mInput | UP;
-			System.out.println("Move Event");
+			NewClient.log.println("Move Event");
 			break;
 		case KeyEvent.VK_DOWN:
 			game.mInput = game.mInput | DOWN;
-			System.out.println("Move Event");
+			NewClient.log.println("Move Event");
 			break;
 		}
 	}
@@ -117,23 +118,23 @@ public class GameInput implements KeyListener {
 		switch(e.getKeyCode()) {
 		case KeyEvent.VK_SPACE:
 			game.mInput = game.mInput & ~FIRE;
-			System.out.println("Shoot Event");
+			NewClient.log.println("Shoot Event");
 			break;
 		case KeyEvent.VK_LEFT:
 			game.mInput = game.mInput & ~LEFT;
-			System.out.println("Rotate Event");
+			NewClient.log.println("Rotate Event");
 			break;
 		case KeyEvent.VK_RIGHT:
 			game.mInput = game.mInput & ~RIGHT;
-			System.out.println("Rotate Event");
+			NewClient.log.println("Rotate Event");
 			break;
 		case KeyEvent.VK_UP:
 			game.mInput = game.mInput & ~UP;
-			System.out.println("Move Event");
+			NewClient.log.println("Move Event");
 			break;
 		case KeyEvent.VK_DOWN:
 			game.mInput = game.mInput & ~DOWN;
-			System.out.println("Move Event");
+			NewClient.log.println("Move Event");
 			break;
 		}
 	}
