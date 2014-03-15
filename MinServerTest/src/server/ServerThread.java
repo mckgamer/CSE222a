@@ -114,7 +114,7 @@ public class ServerThread extends Thread {
 			if (clientListener.clientAddresses.size() > 0) {
 				synchronized (clientListener.clientAddresses) {
 					boolean badOne = false;
-					byte[] goodData = null;
+				 	byte[] goodData = null;
 					byte[] aggregate = new byte[bytes]; // TODO use the correct
 														// size here
 					ByteBuffer aggregator = ByteBuffer.wrap(aggregate);
