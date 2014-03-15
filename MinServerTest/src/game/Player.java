@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 public class Player {
 	
 	int entityID;
-	public float x=0, y=350, xvel=0, yvel=0;
+	public float x=350, y=350, xvel=0, yvel=0;
 	public int mwidth=18, mheight=18; 
 	public double angle=0.0;
 	

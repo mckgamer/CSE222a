@@ -2,11 +2,14 @@ package game;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import server.Neighbor;
 import client.GameThread;
 
 public class UIThread extends JPanel {
@@ -18,6 +21,52 @@ public class UIThread extends JPanel {
 			
 	GameThread myPlayer;
 	int myPlayerIndex = 0;
+	
+	
+	public void updateMain() {
+		if (myPlayerIndex == 0) { //TL active
+			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
+			if (me!=null && me.x < 250) {
+				//shift left
+				gThreads.remove(1);
+				gThreads.add(1,gThreads.get(0));//.setHost(gThreads.get(0).host, gThreads.get(0).port);
+				gThreads.get(0).setHost(myPlayer.gameState.neighbors.get(Neighbor.LEFT).ip, myPlayer.gameState.neighbors.get(Neighbor.LEFT).port-1110);
+				myPlayer = gThreads.get(1);
+				myPlayerIndex = 1;
+				input.setGameThread(myPlayer);
+			}
+			if (me!=null && me.y < 250) {
+				//shift up
+			}
+		} else if (myPlayerIndex == 1) { //TR active
+			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
+			if (me!=null && me.x > 250) {
+				//shift right
+			}
+			if (me!=null && me.y < 250) {
+				//shift up
+			}
+		} else if (myPlayerIndex == 2) { //BL active
+			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
+			if (me.x < 250) {
+				//shift left
+			}
+			if (me.y > 250) {
+				//shift Down
+			}
+		} else { //BR active
+			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
+			if (me.x > 250) {
+				//shift left
+			}
+			if (me.y > 250) {
+				//shift down
+			}
+		} 
+		//System.out.println(myPlayer.gameState.neighbors.get(Neighbor.RIGHT).ip.toString());
+		//System.out.println(myPlayer.gameState.neighbors.get(Neighbor.RIGHT).port-1110);
+		//gThreads.get(2).setHost(myPlayer.gameState.neighbors.get(Neighbor.RIGHT).ip, myPlayer.gameState.neighbors.get(Neighbor.LEFT).port-1110);
+	}
 	
 	public UIThread()                       // set up graphics window
     {
@@ -35,10 +84,15 @@ public class UIThread extends JPanel {
         application.setSize(700, 700);         // window is 500 pixels wide, 400 high
         application.setVisible(true); 
         
-        gThreads.add(new GameThread(4440,-250,-250));
-        gThreads.add(new GameThread(4441,250,-250));
-        gThreads.add(new GameThread(4442,-250,250));
-        gThreads.add(new GameThread(4443,250,250));
+        try {
+			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4440,-250,-250));
+			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4441,250,-250));
+			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4442,-250,250));
+			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4443,250,250));
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
         
         for (GameThread g: gThreads) {
         	g.start();	
@@ -47,6 +101,7 @@ public class UIThread extends JPanel {
         input = new GameInput(gThreads.get(myPlayerIndex));
         addKeyListener(input);
         myPlayer = gThreads.get(myPlayerIndex);
+        //gThreads.get(1).gameState.neighbors.get(Neighbor.TOP)
         
         while (true) {
         	repaint();
@@ -73,7 +128,7 @@ public class UIThread extends JPanel {
         	pY = height/2 - (int) pTemp.y - myPlayer.yOffSet;
         }
         
-        //Draw Grid
+        //Draw Grid 
         g.setColor(new Color(0,0,250));
         for (int l=-250;l<751;l+=500) {
         	g.drawLine(l+pX, 0+pY-250, l+pX, 750+pY);
@@ -82,6 +137,8 @@ public class UIThread extends JPanel {
         	g.drawLine(0+pX-250, t+pY, 750+pX, t+pY);
         }
         g.setColor(new Color(0,0,0));
+        
+			updateMain();
         
         int temp = 1;
         for (GameThread gThread : gThreads) {
@@ -100,6 +157,7 @@ public class UIThread extends JPanel {
 		        for (Player p: gThread.gameState.players.values()) {
 		        	if (gThread == myPlayer && gThread.mClientID == p.entityID) {
 		        		g.setColor(new Color(255,0,0));
+		        		
 		        	}
 		        	
 		        	int brX = (int)(9*Math.cos(p.angle+Math.PI/3));

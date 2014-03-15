@@ -47,6 +47,7 @@ public class GameLogic {
 		checkSumt.reset();
         checkSumt.update(getState());
 
+        ArrayList<Integer> killPlayers = new ArrayList<Integer>();
 		// Drawing code goes here
 		for (Player p : players.values()) {
 			p.x += p.xvel;
@@ -58,6 +59,12 @@ public class GameLogic {
 				if ((p).x < 0) { (p).x+= 500; playerTransfer.get(Neighbor.LEFT).add(p); }
 				if ((p).y > 500) { (p).y-= 500; playerTransfer.get(Neighbor.BOTTOM).add(p); }
 				if ((p).y < 0) { (p).y+= 500; playerTransfer.get(Neighbor.TOP).add(p); }
+				players.remove(p);
+			}
+		}
+		
+		synchronized (players) {
+			for (Integer p : killPlayers) {
 				players.remove(p);
 			}
 		}
@@ -148,8 +155,8 @@ public class GameLogic {
 	    		int id = wrapped.getInt();
 				Bullet temp = new Bullet(id);
 				temp.decode(wrapped);
-				temp.x += temp.xvel;
-				temp.y += temp.yvel;
+				//temp.x += temp.xvel;
+				//temp.y += temp.yvel;
 				synchronized (bullets) {
 					bullets.put(id,temp);
 				}
