@@ -1,13 +1,23 @@
 package game;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import test.ConnectToHostActionListener;
+import test.EnableRoboModeChangeListener;
 
 import server.Neighbor;
 import client.GameThread;
@@ -78,7 +88,24 @@ public class UIThread extends JPanel {
         
         application.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);   // set frame to exit
                                                                       // when it is closed
-        application.add(this);           
+        //Set up the top bar
+        JToggleButton enableRoboModeButton = new JToggleButton("Enable Robo-Mode");
+        
+        JLabel ipLabel = new JLabel("Server IP:");
+        
+        JTextField ipTextField = new JTextField(15);
+
+        JPanel topBarPanel = new JPanel(new FlowLayout());
+        topBarPanel.add(enableRoboModeButton);
+        topBarPanel.add(ipLabel);
+        topBarPanel.add(ipTextField);
+        
+        //Set up the main application window
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(topBarPanel, BorderLayout.NORTH);
+        mainPanel.add(this, BorderLayout.CENTER);
+        this.requestFocus();
+        application.add(mainPanel);
 
 
         application.setSize(700, 700);         // window is 500 pixels wide, 400 high
@@ -99,12 +126,19 @@ public class UIThread extends JPanel {
         }
         
         input = new GameInput(gThreads.get(myPlayerIndex));
-        addKeyListener(input);
+        this.addKeyListener(input);
         myPlayer = gThreads.get(myPlayerIndex);
+
         //gThreads.get(1).gameState.neighbors.get(Neighbor.TOP)
+
+        //Add action listeners
+        enableRoboModeButton.addChangeListener(new EnableRoboModeChangeListener(this, input));
+        ipTextField.addActionListener(new ConnectToHostActionListener(this, gThreads.get(0), ipTextField));
+
         
         while (true) {
         	repaint();
+        	input.generateKeyPresses();
         	try {
 				Thread.sleep(5);
 			} catch (InterruptedException e) {
