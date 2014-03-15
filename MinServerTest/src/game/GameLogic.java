@@ -20,10 +20,10 @@ public class GameLogic {
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();
 	
-	public HashMap<Neighbor,ServerAddress> neighbors = new HashMap<Neighbor,ServerAddress>();
+	public HashMap<Neighbor.Direction,Neighbor> neighbors = new HashMap<Neighbor.Direction,Neighbor>();
 
-	public HashMap<Neighbor,ArrayList<Player>> playerTransfer = new HashMap<Neighbor,ArrayList<Player>>();
-	public HashMap<Neighbor,ArrayList<Bullet>> bulletTransfer = new HashMap<Neighbor,ArrayList<Bullet>>();
+	public HashMap<Neighbor.Direction,ArrayList<Player>> playerTransfer = new HashMap<Neighbor.Direction,ArrayList<Player>>();
+	public HashMap<Neighbor.Direction,ArrayList<Bullet>> bulletTransfer = new HashMap<Neighbor.Direction,ArrayList<Bullet>>();
 	
 	private Adler32 checkSumt = new Adler32();
 	private LogFile log = null;
@@ -33,15 +33,15 @@ public class GameLogic {
 		this.log = log;
 		
 		synchronized(playerTransfer) {
-			playerTransfer.put(Neighbor.TOP,new ArrayList<Player>());
-			playerTransfer.put(Neighbor.BOTTOM,new ArrayList<Player>());
-			playerTransfer.put(Neighbor.LEFT,new ArrayList<Player>());
-			playerTransfer.put(Neighbor.RIGHT,new ArrayList<Player>());
+			playerTransfer.put(Neighbor.Direction.TOP,new ArrayList<Player>());
+			playerTransfer.put(Neighbor.Direction.BOTTOM,new ArrayList<Player>());
+			playerTransfer.put(Neighbor.Direction.LEFT,new ArrayList<Player>());
+			playerTransfer.put(Neighbor.Direction.RIGHT,new ArrayList<Player>());
 			
-			bulletTransfer.put(Neighbor.TOP,new ArrayList<Bullet>());
-			bulletTransfer.put(Neighbor.BOTTOM,new ArrayList<Bullet>());
-			bulletTransfer.put(Neighbor.LEFT,new ArrayList<Bullet>());
-			bulletTransfer.put(Neighbor.RIGHT,new ArrayList<Bullet>());
+			bulletTransfer.put(Neighbor.Direction.TOP,new ArrayList<Bullet>());
+			bulletTransfer.put(Neighbor.Direction.BOTTOM,new ArrayList<Bullet>());
+			bulletTransfer.put(Neighbor.Direction.LEFT,new ArrayList<Bullet>());
+			bulletTransfer.put(Neighbor.Direction.RIGHT,new ArrayList<Bullet>());
 		}
 	}
 	public void doPhysics() {
@@ -57,10 +57,10 @@ public class GameLogic {
 			p.xvel /= 1.03;
 			p.yvel /= 1.03;
 			if (p.x > 500 || p.x < 0 || p.y < 0 || p.y > 500) {
-				if (p.x > 500) { (p).x-= 500; playerTransfer.get(Neighbor.RIGHT).add(p); }
-				if ((p).x < 0) { (p).x+= 500; playerTransfer.get(Neighbor.LEFT).add(p); }
-				if ((p).y > 500) { (p).y-= 500; playerTransfer.get(Neighbor.BOTTOM).add(p); }
-				if ((p).y < 0) { (p).y+= 500; playerTransfer.get(Neighbor.TOP).add(p); }
+				if (p.x > 500) { (p).x-= 500; playerTransfer.get(Neighbor.Direction.RIGHT).add(p); }
+				if ((p).x < 0) { (p).x+= 500; playerTransfer.get(Neighbor.Direction.LEFT).add(p); }
+				if ((p).y > 500) { (p).y-= 500; playerTransfer.get(Neighbor.Direction.BOTTOM).add(p); }
+				if ((p).y < 0) { (p).y+= 500; playerTransfer.get(Neighbor.Direction.TOP).add(p); }
 				players.remove(p);
 			}
 		}
@@ -82,10 +82,10 @@ public class GameLogic {
 				kill.add(b.entityID);
 			}
 			if (b.x > 500 || b.x < 0 || b.y < 0 || b.y > 500) {
-				if ((b).x > 500) { (b).x-= 500; bulletTransfer.get(Neighbor.RIGHT).add(b); }
-				if ((b).x < 0) { (b).x+= 500; bulletTransfer.get(Neighbor.LEFT).add(b); }
-				if ((b).y > 500) { (b).y-= 500; bulletTransfer.get(Neighbor.BOTTOM).add(b); }
-				if ((b).y < 0) { (b).y+= 500; bulletTransfer.get(Neighbor.TOP).add(b); }
+				if ((b).x > 500) { (b).x-= 500; bulletTransfer.get(Neighbor.Direction.RIGHT).add(b); }
+				if ((b).x < 0) { (b).x+= 500; bulletTransfer.get(Neighbor.Direction.LEFT).add(b); }
+				if ((b).y > 500) { (b).y-= 500; bulletTransfer.get(Neighbor.Direction.BOTTOM).add(b); }
+				if ((b).y < 0) { (b).y+= 500; bulletTransfer.get(Neighbor.Direction.TOP).add(b); }
 				kill.add(b.entityID);
 			}
 			// if b leaves my boundaries then transfer it to another server
@@ -167,8 +167,14 @@ public class GameLogic {
     }
 	
 	public byte[] getState() {
-		byte buf[] = new byte[12+players.size()*Player.encodeSize()+bullets.size()*Bullet.encodeSize()+32];
+		int uidGenBytes = 4;
+		int sizeInfoBytes = 4 * 2;
+		int playerBytes = players.size()*Player.encodeSize();
+		int bulletBytes = bullets.size()*Bullet.encodeSize();
+		int neighborBytes = Neighbor.ENCODE_SIZE * Neighbor.Direction.values().length;
+		byte buf[] = new byte[uidGenBytes + sizeInfoBytes + playerBytes + bulletBytes + neighborBytes];
 		ByteBuffer wrapped = ByteBuffer.wrap(buf);
+		
 		wrapped.putInt(mUIDGen.softOther());
 		wrapped.putInt(players.size());
 		for (Player p : players.values()) {
@@ -178,14 +184,29 @@ public class GameLogic {
     	for (Bullet b : bullets.values()) {
     		wrapped.put(b.encode());
     	}
-    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.TOP).ip.getAddress()).getInt());
-    	wrapped.putInt(neighbors.get(Neighbor.TOP).port);
-    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.LEFT).ip.getAddress()).getInt());
-    	wrapped.putInt(neighbors.get(Neighbor.LEFT).port);
-    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.RIGHT).ip.getAddress()).getInt());
-    	wrapped.putInt(neighbors.get(Neighbor.RIGHT).port);
-    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.BOTTOM).ip.getAddress()).getInt());
-    	wrapped.putInt(neighbors.get(Neighbor.BOTTOM).port);
+    	
+    	byte [] nullBytes = new byte[Neighbor.ENCODE_SIZE];
+    	
+    	for(Neighbor.Direction dir : Neighbor.Direction.values()) {
+    		//If the neighbor exists, encode it.
+    		Neighbor nbor = neighbors.get(dir);
+        	if(nbor != null) {
+        		nbor.encode(wrapped);
+        	} else {
+        		wrapped.put(nullBytes);
+        	}
+    	}
+    	
+    	/*
+    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.Direction.TOP).getAddress().ip.getAddress()).getInt());
+    	wrapped.putInt(neighbors.get(Neighbor.Direction.TOP).getAddress().port);
+    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.Direction.LEFT).getAddress().ip.getAddress()).getInt());
+    	wrapped.putInt(neighbors.get(Neighbor.Direction.LEFT).getAddress().port);
+    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.Direction.RIGHT).getAddress().ip.getAddress()).getInt());
+    	wrapped.putInt(neighbors.get(Neighbor.Direction.RIGHT).getAddress().port);
+    	wrapped.putInt(ByteBuffer.wrap(neighbors.get(Neighbor.Direction.BOTTOM).getAddress().ip.getAddress()).getInt());
+    	wrapped.putInt(neighbors.get(Neighbor.Direction.BOTTOM).getAddress().port);
+    	*/
 		return buf;
 	}
 	
@@ -219,24 +240,35 @@ public class GameLogic {
     			bullets.get(id).decode(wrapped);
     		}
     	}
+		
+    	//Decode the neighbors
+		for(Neighbor.Direction dir : Neighbor.Direction.values()) {
+    		//If the neighbor exists, encode it.
+    		Neighbor nbor = Neighbor.decode(wrapped);
+        	if(nbor != null) {
+        		neighbors.put(dir, nbor);
+        	}
+    	}
+		/*
     	try {
-    		if (neighbors.get(Neighbor.TOP) == null) { neighbors.put(Neighbor.TOP,new ServerAddress("127.0.0.1",4444)); }
-    		if (neighbors.get(Neighbor.LEFT) == null) { neighbors.put(Neighbor.LEFT,new ServerAddress("127.0.0.1",4444)); }
-    		if (neighbors.get(Neighbor.RIGHT) == null) { neighbors.put(Neighbor.RIGHT,new ServerAddress("127.0.0.1",4444)); }
-    		if (neighbors.get(Neighbor.BOTTOM) == null) { neighbors.put(Neighbor.BOTTOM,new ServerAddress("127.0.0.1",4444)); }
-			neighbors.get(Neighbor.TOP).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
-	    	neighbors.get(Neighbor.TOP).port = wrapped.getInt();
+    		if (neighbors.get(Neighbor.Direction.TOP) == null) { neighbors.put(Neighbor.Direction.TOP,new ServerAddress("127.0.0.1",4444)); }
+    		if (neighbors.get(Neighbor.Direction.LEFT) == null) { neighbors.put(Neighbor.Direction.LEFT,new ServerAddress("127.0.0.1",4444)); }
+    		if (neighbors.get(Neighbor.Direction.RIGHT) == null) { neighbors.put(Neighbor.Direction.RIGHT,new ServerAddress("127.0.0.1",4444)); }
+    		if (neighbors.get(Neighbor.Direction.BOTTOM) == null) { neighbors.put(Neighbor.Direction.BOTTOM,new ServerAddress("127.0.0.1",4444)); }
+			neighbors.get(Neighbor.Direction.TOP).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
+	    	neighbors.get(Neighbor.Direction.TOP).port = wrapped.getInt();
 	    	
-	    	neighbors.get(Neighbor.LEFT).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
-	    	neighbors.get(Neighbor.LEFT).port = wrapped.getInt();
-	    	neighbors.get(Neighbor.RIGHT).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
-	    	neighbors.get(Neighbor.RIGHT).port = wrapped.getInt();
-	    	neighbors.get(Neighbor.BOTTOM).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
-	    	neighbors.get(Neighbor.BOTTOM).port = wrapped.getInt();
+	    	neighbors.get(Neighbor.Direction.LEFT).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
+	    	neighbors.get(Neighbor.Direction.LEFT).port = wrapped.getInt();
+	    	neighbors.get(Neighbor.Direction.RIGHT).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
+	    	neighbors.get(Neighbor.Direction.RIGHT).port = wrapped.getInt();
+	    	neighbors.get(Neighbor.Direction.BOTTOM).ip = InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(wrapped.getInt()).array());
+	    	neighbors.get(Neighbor.Direction.BOTTOM).port = wrapped.getInt();
     	} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
     }
 	
 	public byte checkSum() {

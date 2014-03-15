@@ -12,4 +12,8 @@ public class ServerAddress {
 		this.ip = InetAddress.getByName(address);
 		this.port = port;
 	}
+	public ServerAddress(InetAddress address, int port) {
+		this.ip = address;
+		this.port = port;
+	}
 }

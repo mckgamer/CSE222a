@@ -18,9 +18,12 @@ import shared.ServerMessage;
 public class TransferSender extends Thread {
 	
 	public DatagramSocket socket = null;
-	public HashMap<Neighbor,ArrayList<Player>> ptransfers;
-	public HashMap<Neighbor,ArrayList<Bullet>> btransfers;
-	public HashMap<Neighbor,ServerAddress> neighbors;
+	/*
+	public HashMap<Neighbor.Direction,ArrayList<Player>> ptransfers;
+	public HashMap<Neighbor.Direction,ArrayList<Bullet>> btransfers;
+	public HashMap<Neighbor.Direction,ServerAddress> neighbors;
+	*/
+	private GameLogic myLogic;
 	private boolean isRunning = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
@@ -28,9 +31,12 @@ public class TransferSender extends Thread {
 	public TransferSender(GameLogic dummy, String name) throws SocketException {
 		super(name);
 		socket = new DatagramSocket();
+		myLogic = dummy;
+		/*
 		ptransfers = dummy.playerTransfer;
 		btransfers = dummy.bulletTransfer;
 		neighbors = dummy.neighbors;
+		*/
 	}
 
 	public void kill() {
@@ -41,11 +47,11 @@ public class TransferSender extends Thread {
 
 		while (isRunning) {
 			try {
-				synchronized (ptransfers) {
+				synchronized (myLogic.playerTransfer) {
 					
-					for (Neighbor neigh : ptransfers.keySet()) {
-						ArrayList<Player> ptrans = ptransfers.get(neigh);
-						ArrayList<Bullet> btrans = btransfers.get(neigh);
+					for (Neighbor.Direction neigh : myLogic.playerTransfer.keySet()) {
+						ArrayList<Player> ptrans = myLogic.playerTransfer.get(neigh);
+						ArrayList<Bullet> btrans = myLogic.bulletTransfer.get(neigh);
 						if ((ptrans != null && btrans != null) && (ptrans.size()>0 || btrans.size()>0)) {
 							byte[] buftemp = new byte[1500]; //TODO right size
 		                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
@@ -61,8 +67,13 @@ public class TransferSender extends Thread {
 		                	for (Bullet b : btrans) {
 		                		wrapped.put(b.encode());
 		                	}
-		    				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, neighbors.get(neigh).ip, neighbors.get(neigh).port);
-		    				Server.log.println("Sending out transfers to "+neighbors.get(neigh).port);
+		    				DatagramPacket packet2 = new DatagramPacket(
+	    						buftemp,
+	    						buftemp.length,
+	    						myLogic.neighbors.get(neigh).getAddress().ip,
+	    						myLogic.neighbors.get(neigh).getAddress().port
+    						);
+		    				Server.log.println("Sending out transfers to " + myLogic.neighbors.get(neigh).getAddress().port);
 		    				socket.send(packet2);
 		    				
 		    				ptrans.clear();

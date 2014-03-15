@@ -18,8 +18,8 @@ import javax.swing.event.ChangeListener;
 
 import test.ConnectToHostActionListener;
 import test.EnableRoboModeChangeListener;
-
 import server.Neighbor;
+import server.ServerAddress;
 import client.GameThread;
 
 public class UIThread extends JPanel {
@@ -40,7 +40,8 @@ public class UIThread extends JPanel {
 				//shift left
 				gThreads.remove(1);
 				gThreads.add(1,gThreads.get(0));//.setHost(gThreads.get(0).host, gThreads.get(0).port);
-				gThreads.get(0).setHost(myPlayer.gameState.neighbors.get(Neighbor.LEFT).ip, myPlayer.gameState.neighbors.get(Neighbor.LEFT).port-1110);
+				ServerAddress address = myPlayer.gameState.neighbors.get(Neighbor.Direction.LEFT).getAddress();
+				gThreads.get(0).setHost(address.ip, address.port-1110);	//TODO: WTF? Don't hardcode stuff like this!
 				myPlayer = gThreads.get(1);
 				myPlayerIndex = 1;
 				input.setGameThread(myPlayer);

@@ -63,13 +63,19 @@ public class ServerThread extends Thread {
 		socket = new DatagramSocket();
 		
 		int me = listenPort%4;
+		
+		Neighbor nborTop = new Neighbor(new ServerAddress("localhost",5550+((2+me)%4)), 0);
+		Neighbor nborLeft = new Neighbor(new ServerAddress("localhost",5550+(Math.abs((me-5))%4)), 0);
+		Neighbor nborBottom = new Neighbor(new ServerAddress("localhost",5550+(Math.abs((me-5))%4)), 0);
+		Neighbor nborRight = new Neighbor(new ServerAddress("localhost",5550+((2+me)%4)), 0);
+		
 		//neighbors.put(Neighbor.TOPLEFT, new ServerAddress("localhost",5550+3-me));
-		dummy.neighbors.put(Neighbor.TOP, new ServerAddress("localhost",5550+((2+me)%4)));
+		dummy.neighbors.put(Neighbor.Direction.TOP, nborTop);
 		//neighbors.put(Neighbor.TOPRIGHT, new ServerAddress("localhost",5550+3-me));
-		dummy.neighbors.put(Neighbor.LEFT, new ServerAddress("localhost",5550+(Math.abs((me-5))%4)));
-		dummy.neighbors.put(Neighbor.RIGHT, new ServerAddress("localhost",5550+(Math.abs((me-5))%4)));
+		dummy.neighbors.put(Neighbor.Direction.LEFT, nborLeft);
+		dummy.neighbors.put(Neighbor.Direction.RIGHT, nborBottom);
 		//neighbors.put(Neighbor.BOTTOMLEFT, new ServerAddress("localhost",5550+3-me));
-		dummy.neighbors.put(Neighbor.BOTTOM, new ServerAddress("localhost",5550+((2+me)%4)));
+		dummy.neighbors.put(Neighbor.Direction.BOTTOM, nborRight);
 		//neighbors.put(Neighbor.BOTTOMRIGHT, new ServerAddress("localhost",5550+3-me));
 		
 	}
