@@ -40,18 +40,30 @@ public class GameThread extends Thread {
 	
 	@Override
 	public void run() {
+		/*
 		try {
 			host = InetAddress.getByName("127.0.0.1");
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		*/
+		host = null;
 
 		try {
 			// get a datagram socket
 			DatagramSocket socket = new DatagramSocket();
 	
 			while (isRunning) {
+				if(host == null) {
+		        	try {
+						Thread.sleep(5);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					continue;
+				}
+				
 				// send request
 				byte[] buf;
 				int inputNow = mInput; //for sync reasons (key can change mInput async)

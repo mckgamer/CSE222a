@@ -14,6 +14,7 @@ import javax.swing.JToggleButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import test.ConnectToHostActionListener;
 import test.EnableRoboModeChangeListener;
 
 import client.GameThread;
@@ -74,8 +75,9 @@ public class UIThread extends JPanel {
         this.addKeyListener(input);
         myPlayer = gThreads.get(myPlayerIndex);
         
-        //Allow the robo-mode button to modify input robo-mode
+        //Add action listeners
         enableRoboModeButton.addChangeListener(new EnableRoboModeChangeListener(this, input));
+        ipTextField.addActionListener(new ConnectToHostActionListener(this, gThreads.get(0), ipTextField));
         
         while (true) {
         	repaint();
