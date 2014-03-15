@@ -7,6 +7,8 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import shared.ServerMessage;
+
 public class TransferListener extends Thread {
 
 	public DatagramSocket socket = null;
@@ -37,8 +39,17 @@ public class TransferListener extends Thread {
 				System.out.println("YAY got transfers from " + packet.getPort());
 
 				ByteBuffer tData = ByteBuffer.wrap(packet.getData(),0,40); //TODO remove 40
-				synchronized (transfers) {
-					transfers.add(tData);
+				
+				//Extract packet header and operate on packet
+				byte messageType = tData.get();
+				switch(messageType) {
+				case ServerMessage.TRANSFEROBJ:
+					synchronized (transfers) {
+						transfers.add(tData);
+					}
+					break;
+				default:
+					System.out.println("Unknown message type " + messageType);
 				}
 
 				recieved = false;

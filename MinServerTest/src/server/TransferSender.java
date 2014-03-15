@@ -13,13 +13,15 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import shared.ServerMessage;
+
 public class TransferSender extends Thread {
 	
 	public DatagramSocket socket = null;
 	public HashMap<Neighbor,ArrayList<Player>> ptransfers;
 	public HashMap<Neighbor,ArrayList<Bullet>> btransfers;
 	public HashMap<Neighbor,ServerAddress> neighbors;
-	private boolean condition = true;
+	private boolean isRunning = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 
@@ -32,12 +34,12 @@ public class TransferSender extends Thread {
 	}
 
 	public void kill() {
-		condition = false;
+		isRunning = false;
 	}
 
 	public void run() {
 
-		while (condition) {
+		while (isRunning) {
 			try {
 				synchronized (ptransfers) {
 					
@@ -48,6 +50,8 @@ public class TransferSender extends Thread {
 							byte[] buftemp = new byte[1500]; //TODO right size
 		                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
 		                	//TODO encode total size somehow
+		                	wrapped.put(ServerMessage.TRANSFEROBJ);
+		                	
 		                	wrapped.putInt(ptrans.size());
 		                	for (Player p : ptrans) {
 		                		wrapped.put(p.encode());

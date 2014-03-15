@@ -47,7 +47,7 @@ public class Server {
     private static List<ServerThread> servers = new ArrayList<ServerThread>();
 	static int listenPort = 4440;
 	static int transferPort = 5550;
-	static final int NUM_THREADS = 4;
+	static final int NUM_THREADS = 1;
 	
     public static void main(String[] args) throws IOException {
     	//Create a bunch of server threads
