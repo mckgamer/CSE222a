@@ -50,10 +50,6 @@ public class GameThread extends Thread {
 			e1.printStackTrace();
 		}
 
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
 
 		try {
 			// get a datagram socket
