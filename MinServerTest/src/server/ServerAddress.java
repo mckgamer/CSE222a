@@ -16,4 +16,9 @@ public class ServerAddress {
 		this.ip = address;
 		this.port = port;
 	}
+	
+	@Override
+	public String toString() {
+		return ip.getHostAddress() + ":" + port;
+	}
 }
