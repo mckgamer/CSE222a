@@ -37,7 +37,7 @@ public class UIThread extends JPanel {
 	public void updateMain() {
 		if (myPlayerIndex == 0) { //TL active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			if (me!=null && me.x < 250) {
+			if (me!=null && me.x < 250) {/*
 				//shift left
 				gThreads.remove(1);
 				gThreads.add(1,gThreads.get(0));//.setHost(gThreads.get(0).host, gThreads.get(0).port);
@@ -45,7 +45,7 @@ public class UIThread extends JPanel {
 				gThreads.get(0).setHost(address.ip, address.port-1110);	//TODO: WTF? Don't hardcode stuff like this!
 				myPlayer = gThreads.get(1);
 				myPlayerIndex = 1;
-				input.setGameThread(myPlayer);
+				input.setGameThread(myPlayer);*/
 			}
 			if (me!=null && me.y < 250) {
 				//shift up
