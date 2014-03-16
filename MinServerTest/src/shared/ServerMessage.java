@@ -1,5 +1,10 @@
 package shared;
 
+import java.nio.ByteBuffer;
+
+import server.Neighbor;
+import server.ServerAddress;
+
 public class ServerMessage {
 	//Communication with client
 	public static final byte NORMALOP = 0;

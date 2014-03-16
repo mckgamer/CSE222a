@@ -49,4 +49,8 @@ public class Neighbor {
 		return priority;
 	}
 
+	@Override
+	public String toString() {
+		return "Neighbor {" + priority + ": " + address + "}";
+	}
 }

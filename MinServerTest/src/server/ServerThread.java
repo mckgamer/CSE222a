@@ -57,7 +57,7 @@ public class ServerThread extends Thread {
 		clientListener = new ClientListener(dummy, listenPort, "ClientListener" + listenPort);
 		clientListener.start();
 
-		transferListener = new TransferListener(transferPort, "TransferListener" + transferPort);
+		transferListener = new TransferListener(dummy, transferPort, "TransferListener" + transferPort);
 		transferListener.start();
 		transferSender = new TransferSender(dummy, "TransferSender-L" + listenPort + "-T" + transferPort);
 		transferSender.start();
