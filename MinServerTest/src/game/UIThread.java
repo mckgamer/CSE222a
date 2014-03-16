@@ -21,6 +21,7 @@ import test.EnableRoboModeChangeListener;
 import server.Neighbor;
 import server.ServerAddress;
 import client.GameThread;
+import client.NewClient;
 
 public class UIThread extends JPanel {
 	
@@ -119,7 +120,7 @@ public class UIThread extends JPanel {
 			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4443,250,250));
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			NewClient.log.printerr(e1);
 		}
         
         for (GameThread g: gThreads) {
@@ -143,7 +144,7 @@ public class UIThread extends JPanel {
         	try {
 				Thread.sleep(5);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				NewClient.log.printerr(e);
 			}
         }
     }

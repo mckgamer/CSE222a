@@ -55,8 +55,14 @@ public class TransferSender extends Thread {
 						if ((ptrans != null && btrans != null) && (ptrans.size()>0 || btrans.size()>0)) {
 							byte[] buftemp = new byte[1500]; //TODO right size
 		                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
-		                	//TODO encode total size somehow
+		                	int startPos = wrapped.position();	//use for measuring buffer size
+		                	
+		                	//Mark the message type
 		                	wrapped.put(ServerMessage.TRANSFEROBJ);
+		                	
+		                	//Reserve 4 bytes for the message size
+		                	wrapped.mark();
+		                	wrapped.putInt(0);
 		                	
 		                	wrapped.putInt(ptrans.size());
 		                	for (Player p : ptrans) {
@@ -67,13 +73,19 @@ public class TransferSender extends Thread {
 		                	for (Bullet b : btrans) {
 		                		wrapped.put(b.encode());
 		                	}
+		                	
+		                	//Write the packet length to the buffer
+		                	int size = wrapped.position() - startPos;
+		                	wrapped.reset();
+		                	wrapped.putInt(size);
+		                	
 		    				DatagramPacket packet2 = new DatagramPacket(
 	    						buftemp,
 	    						buftemp.length,
 	    						myLogic.neighbors.get(neigh).getAddress().ip,
 	    						myLogic.neighbors.get(neigh).getAddress().port
     						);
-		    				Server.log.println("Sending out transfers to " + myLogic.neighbors.get(neigh).getAddress().port);
+		    				Server.log.println("Sending out transfers to " + myLogic.neighbors.get(neigh).getAddress().port + " from " + socket.getLocalPort());
 		    				socket.send(packet2);
 		    				
 		    				ptrans.clear();
@@ -85,7 +97,7 @@ public class TransferSender extends Thread {
 				}
 
 			} catch (IOException e) {
-				e.printStackTrace();
+				Server.log.printerr(e);
 				socket.close();
 			}
 		}

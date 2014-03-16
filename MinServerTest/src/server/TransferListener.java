@@ -36,9 +36,9 @@ public class TransferListener extends Thread {
 				packet = new DatagramPacket(buf, buf.length);
 				socket.receive(packet);
 				recieved = true;
-				Server.log.println("YAY got transfers from " + packet.getPort());
+				Server.log.println("YAY " + socket.getLocalPort() + " got transfers from " + packet.getPort());
 
-				ByteBuffer tData = ByteBuffer.wrap(packet.getData(),0,40); //TODO remove 40
+				ByteBuffer tData = ByteBuffer.wrap(packet.getData()); //TODO remove 40
 				
 				//Extract packet header and operate on packet
 				byte messageType = tData.get();
@@ -58,7 +58,7 @@ public class TransferListener extends Thread {
 				recieved = false;
 
 			} catch (IOException e) {
-				e.printStackTrace();
+				Server.log.printerr(e);
 				socket.close();
 			}
 		}

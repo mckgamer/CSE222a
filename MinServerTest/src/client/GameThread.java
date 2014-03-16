@@ -46,7 +46,7 @@ public class GameThread extends Thread {
 			//host = InetAddress.getByName("137.110.53.55");
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			NewClient.log.printerr(e1);
 		}
 
 		try {
@@ -58,7 +58,7 @@ public class GameThread extends Thread {
 		        	try {
 						Thread.sleep(5);
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						NewClient.log.printerr(e);
 					}
 					continue;
 				}
@@ -90,7 +90,7 @@ public class GameThread extends Thread {
 	
 			socket.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			NewClient.log.printerr(e);
 		}
 	}
 	

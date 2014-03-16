@@ -31,6 +31,14 @@ public class LogFile {
 		print("<" + Thread.currentThread().getName() + "> " + s + "\n");
 	}
 	
+	public void printerr(Exception e) {
+		synchronized(file) {
+			e.printStackTrace(file);
+			file.flush();
+		}
+		e.printStackTrace();
+	}
+	
 	public void close() {
 		file.flush();
 		file.close();

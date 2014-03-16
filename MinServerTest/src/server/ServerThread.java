@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import client.NewClient;
+
 import shared.ServerMessage;
 
 public class ServerThread extends Thread {
@@ -55,9 +57,9 @@ public class ServerThread extends Thread {
 		clientListener = new ClientListener(dummy, listenPort, "ClientListener" + listenPort);
 		clientListener.start();
 
-		transferListener = new TransferListener(transferPort, "Transfer Listener");
+		transferListener = new TransferListener(transferPort, "TransferListener" + transferPort);
 		transferListener.start();
-		transferSender = new TransferSender(dummy, "Transfer Sender");
+		transferSender = new TransferSender(dummy, "TransferSender-L" + listenPort + "-T" + transferPort);
 		transferSender.start();
 
 		socket = new DatagramSocket();
@@ -97,7 +99,7 @@ public class ServerThread extends Thread {
 			try {
 				Thread.sleep(stallFR);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				Server.log.printerr(e);
 			}
 
 			if (windowPackets >= windowFR) {
@@ -162,7 +164,8 @@ public class ServerThread extends Thread {
 
 						nwrapper.put((byte)transferListener.transfers.size());
 						for (ByteBuffer t : transferListener.transfers) {
-							nwrapper.put(t);
+							int size = t.getInt();
+							nwrapper.put(t.array(), t.position(), size);
 						}
 						transferListener.transfers.clear();
 					}
@@ -183,7 +186,7 @@ public class ServerThread extends Thread {
 						try {
 							clientListener.socket.send(packet);
 						} catch (IOException e) {
-							e.printStackTrace();
+							Server.log.printerr(e);
 						}
 					}
 
