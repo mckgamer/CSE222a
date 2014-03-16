@@ -32,7 +32,7 @@ public class ServerThread extends Thread {
 	int bytes = 256;
 
 	private GameLogic dummy;
-	
+
 	public void kill() {
 		if (isRunning()) {
 			isRunning = false;
@@ -44,7 +44,7 @@ public class ServerThread extends Thread {
 	}
 
 	public ServerThread(int listenPort, int transferPort) throws IOException {
-		this(listenPort, transferPort,"ServerThread-L" + listenPort + "-T"
+		this(listenPort, transferPort, "ServerThread-L" + listenPort + "-T"
 				+ transferPort);
 	}
 
@@ -54,32 +54,43 @@ public class ServerThread extends Thread {
 
 		dummy = new GameLogic(Server.log);
 
-		clientListener = new ClientListener(dummy, listenPort, "ClientListener" + listenPort);
+		clientListener = new ClientListener(dummy, listenPort, "ClientListener"
+				+ listenPort);
 		clientListener.start();
 
-		transferListener = new TransferListener(dummy, transferPort, "TransferListener" + transferPort);
+		transferListener = new TransferListener(dummy, transferPort,
+				"TransferListener" + transferPort);
 		transferListener.start();
-		transferSender = new TransferSender(dummy, "TransferSender-L" + listenPort + "-T" + transferPort);
+		transferSender = new TransferSender(dummy, "TransferSender-L"
+				+ listenPort + "-T" + transferPort);
 		transferSender.start();
 
 		socket = new DatagramSocket();
-		
-		int me = listenPort%4;
-		
-		Neighbor nborTop = new Neighbor(new ServerAddress("localhost",5550+((2+me)%4)), 0);
-		Neighbor nborLeft = new Neighbor(new ServerAddress("localhost",5550+(Math.abs((me-5))%4)), 0);
-		Neighbor nborBottom = new Neighbor(new ServerAddress("localhost",5550+(Math.abs((me-5))%4)), 0);
-		Neighbor nborRight = new Neighbor(new ServerAddress("localhost",5550+((2+me)%4)), 0);
-		
-		//neighbors.put(Neighbor.TOPLEFT, new ServerAddress("localhost",5550+3-me));
+
+		int me = listenPort % 4;
+
+		Neighbor nborTop = new Neighbor(new ServerAddress("localhost",
+				5550 + ((2 + me) % 4)), 0);
+		Neighbor nborLeft = new Neighbor(new ServerAddress("localhost",
+				5550 + (Math.abs((me - 5)) % 4)), 0);
+		Neighbor nborBottom = new Neighbor(new ServerAddress("localhost",
+				5550 + (Math.abs((me - 5)) % 4)), 0);
+		Neighbor nborRight = new Neighbor(new ServerAddress("localhost",
+				5550 + ((2 + me) % 4)), 0);
+
+		// neighbors.put(Neighbor.TOPLEFT, new
+		// ServerAddress("localhost",5550+3-me));
 		dummy.neighbors.put(Neighbor.Direction.TOP, nborTop);
-		//neighbors.put(Neighbor.TOPRIGHT, new ServerAddress("localhost",5550+3-me));
+		// neighbors.put(Neighbor.TOPRIGHT, new
+		// ServerAddress("localhost",5550+3-me));
 		dummy.neighbors.put(Neighbor.Direction.LEFT, nborLeft);
 		dummy.neighbors.put(Neighbor.Direction.RIGHT, nborBottom);
-		//neighbors.put(Neighbor.BOTTOMLEFT, new ServerAddress("localhost",5550+3-me));
+		// neighbors.put(Neighbor.BOTTOMLEFT, new
+		// ServerAddress("localhost",5550+3-me));
 		dummy.neighbors.put(Neighbor.Direction.BOTTOM, nborRight);
-		//neighbors.put(Neighbor.BOTTOMRIGHT, new ServerAddress("localhost",5550+3-me));
-		
+		// neighbors.put(Neighbor.BOTTOMRIGHT, new
+		// ServerAddress("localhost",5550+3-me));
+
 	}
 
 	public void updateClientList(List<String> clients) {
@@ -116,13 +127,13 @@ public class ServerThread extends Thread {
 			}
 			windowPackets++;
 			totalPackets++;
-			dummy.doPhysics();
+			
 
 			byte[] normalBuf = null;
 			if (clientListener.clientAddresses.size() > 0) {
 				synchronized (clientListener.clientAddresses) {
 					boolean badOne = false;
-				 	byte[] goodData = null;
+					byte[] goodData = null;
 					byte[] aggregate = new byte[bytes]; // TODO use the correct
 														// size here
 					ByteBuffer aggregator = ByteBuffer.wrap(aggregate);
@@ -142,18 +153,24 @@ public class ServerThread extends Thread {
 					byte[] fullStateBuf = null;
 					if (badOne) {
 						goodData = dummy.getState();
-						fullStateBuf = new byte[1 + 1 + goodData.length];
+						fullStateBuf = new byte[1 + 1 + goodData.length + 1 + 2 + offset]; // TODO fixme
 						ByteBuffer fswrapper = ByteBuffer.wrap(fullStateBuf);
 						fswrapper.put(ServerMessage.OUTOFSYNC);
 						if (goodData != null) {
 							fswrapper.put((byte) dummy.checkSum());
 							fswrapper.put(goodData);
 						}
+						fswrapper.put(ServerMessage.NORMALOP);
+						fswrapper.putShort((short) (offset + 1 + 2)); // length
+						// of
+						// packet
+						// useful
+						fswrapper.put(aggregate, 0, offset);
 					}
 
 					/* Compute the normal op buffer once. */
 					synchronized (transferListener.transfers) {
-						normalBuf = new byte[offset + 1 + 2+80]; //TODO fixme
+						normalBuf = new byte[offset + 1 + 2 + 80]; // TODO fixme
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
 						nwrapper.put(ServerMessage.NORMALOP);
 						nwrapper.putShort((short) (offset + 1 + 2)); // length
@@ -162,7 +179,7 @@ public class ServerThread extends Thread {
 																		// useful
 						nwrapper.put(aggregate, 0, offset);
 
-						nwrapper.put((byte)transferListener.transfers.size());
+						nwrapper.put((byte) transferListener.transfers.size());
 						for (ByteBuffer t : transferListener.transfers) {
 							int size = t.getInt();
 							nwrapper.put(t.array(), t.position(), size);
@@ -196,6 +213,7 @@ public class ServerThread extends Thread {
 				dummy.updateState(ByteBuffer.wrap(normalBuf, 1,
 						normalBuf.length - 1));
 			}
+			dummy.doPhysics();
 		}
 
 		Server.log.println("Dead");

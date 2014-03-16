@@ -25,7 +25,7 @@ public class GameLogic {
 	public HashMap<Neighbor.Direction,ArrayList<Player>> playerTransfer = new HashMap<Neighbor.Direction,ArrayList<Player>>();
 	public HashMap<Neighbor.Direction,ArrayList<Bullet>> bulletTransfer = new HashMap<Neighbor.Direction,ArrayList<Bullet>>();
 	
-	private Adler32 checkSumt = new Adler32();
+	public Adler32 checkSumt = new Adler32();
 	private LogFile log = null;
 	
 	
@@ -45,9 +45,6 @@ public class GameLogic {
 		}
 	}
 	public void doPhysics() {
-		
-		checkSumt.reset();
-        checkSumt.update(getState());
 
         ArrayList<Integer> killPlayers = new ArrayList<Integer>();
 		// Drawing code goes here
@@ -96,6 +93,9 @@ public class GameLogic {
 				bullets.remove(b);
 			}
 		}
+		
+		checkSumt.reset();
+        checkSumt.update(getState());
 	}
 	
 	public void updateState(ByteBuffer wrapped) {
@@ -213,7 +213,8 @@ public class GameLogic {
 	public void decodeState(ByteBuffer wrapped) {
     	mUIDGen.setOther(wrapped.getInt());
     	int pCount = wrapped.getInt();
-    	//players.clear(); //TODO should just remove ones that don't show up
+    	
+    	players.clear(); //TODO should just remove ones that don't show up
     	for (int p=0;p<pCount;p++) {
     		int id = wrapped.getInt();
     		if (!players.containsKey(id)) {
@@ -227,6 +228,7 @@ public class GameLogic {
     		}
     	}
     	int bCount = wrapped.getInt();
+    	
     	bullets.clear(); //TODO should just remove ones that don't show up
     	for (int b=0;b<bCount;b++) {
     		int id = wrapped.getInt();
@@ -269,6 +271,8 @@ public class GameLogic {
 			e.printStackTrace();
 		}
 		*/
+		System.out.println("And going to do updates now too!" + wrapped.get());
+		updateState(wrapped);
     }
 	
 	public byte checkSum() {
