@@ -29,7 +29,7 @@ public class ServerThread extends Thread {
 
 	int bytes = 256;
 
-	static GameLogic dummy;
+	private GameLogic dummy;
 	
 	public void kill() {
 		if (isRunning()) {
@@ -42,7 +42,7 @@ public class ServerThread extends Thread {
 	}
 
 	public ServerThread(int listenPort, int transferPort) throws IOException {
-		this(listenPort, transferPort,"ServerThread-" + listenPort + "<"
+		this(listenPort, transferPort,"ServerThread-L" + listenPort + "-T"
 				+ transferPort);
 	}
 
@@ -50,9 +50,9 @@ public class ServerThread extends Thread {
 			throws IOException {
 		super(name);
 
-		dummy = new GameLogic();
+		dummy = new GameLogic(Server.log);
 
-		clientListener = new ClientListener(listenPort, "ClientListener");
+		clientListener = new ClientListener(dummy, listenPort, "ClientListener" + listenPort);
 		clientListener.start();
 
 		transferListener = new TransferListener(transferPort, "Transfer Listener");
@@ -101,7 +101,7 @@ public class ServerThread extends Thread {
 				windowPackets = 0;
 			}
 			if (System.currentTimeMillis() - longTime > 1000) {
-				System.out.println("PPS: " + totalPackets);
+				Server.log.println("PPS: " + totalPackets);
 				assert (totalPackets > 65);
 				totalPackets = 0;
 				longTime = System.currentTimeMillis();
@@ -111,15 +111,15 @@ public class ServerThread extends Thread {
 			dummy.doPhysics();
 
 			byte[] normalBuf = null;
-			if (clientListener.something.size() > 0) {
-				synchronized (clientListener.something) {
+			if (clientListener.clientAddresses.size() > 0) {
+				synchronized (clientListener.clientAddresses) {
 					boolean badOne = false;
-					byte[] goodData = null;
+				 	byte[] goodData = null;
 					byte[] aggregate = new byte[bytes]; // TODO use the correct
 														// size here
 					ByteBuffer aggregator = ByteBuffer.wrap(aggregate);
 					int offset = 0;
-					for (Address d : clientListener.something) {
+					for (Address d : clientListener.clientAddresses) {
 						if (d.check != dummy.checkSum()) {
 							badOne = true;
 						}
@@ -162,14 +162,14 @@ public class ServerThread extends Thread {
 					}
 
 					/* Send the appropriate packet to each client. */
-					for (Address d : clientListener.something) {
+					for (Address d : clientListener.clientAddresses) {
 						DatagramPacket packet;
 						if (d.check == dummy.checkSum()) {
 							packet = new DatagramPacket(normalBuf,
 									normalBuf.length, d.address, d.port);
 						} else {
 							assert (fullStateBuf != null);
-							System.out.println("Sending out "
+							Server.log.println("Sending out "
 									+ dummy.checkSum());
 							packet = new DatagramPacket(fullStateBuf,
 									fullStateBuf.length, d.address, d.port);
@@ -181,7 +181,7 @@ public class ServerThread extends Thread {
 						}
 					}
 
-					clientListener.something.clear();
+					clientListener.clientAddresses.clear();
 				}
 				assert (normalBuf != null);
 				dummy.updateState(ByteBuffer.wrap(normalBuf, 1,
@@ -189,7 +189,7 @@ public class ServerThread extends Thread {
 			}
 		}
 
-		System.out.println("Dead");
+		Server.log.println("Dead");
 		clientListener.kill();
 	}
 

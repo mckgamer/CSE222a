@@ -40,21 +40,27 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import shared.LogFile;
  
 public class Server {
-	
+
+    private static JFrame display;
+    private static List<ServerThread> servers = new ArrayList<ServerThread>();
 	static int listenPort = 4440;
 	static int transferPort = 5550;
+	static final int NUM_THREADS = 1;
+	public static LogFile log = new LogFile("Server");
 	
     public static void main(String[] args) throws IOException {
     	//Create a bunch of server threads
     	
     	//This automatically finds good port numbers to use
-    	boolean creating = true;
-    	while (creating) {
+    	int threadsStarted = 0;
+    	while (threadsStarted < NUM_THREADS) {
 	    	try {
 	    		servers.add(new ServerThread(listenPort, transferPort));
-	    		creating=false;
+	    		threadsStarted++;
 	    	} catch (IOException e) {
 	    		listenPort++;
 	    		transferPort++;
@@ -93,12 +99,11 @@ public class Server {
     	display.setVisible(true);
     }
     
-    private static JFrame display;
-    private static List<ServerThread> servers = new ArrayList<ServerThread>();
     public static void close() {
-    	System.out.println("Killing servers");
+    	log.println("Killing servers");
     	for(ServerThread server : servers) {
         	server.kill();
         }
+    	log.close();
     }
 }

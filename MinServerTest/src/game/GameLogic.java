@@ -9,6 +9,7 @@ import java.util.zip.Adler32;
 
 import server.Neighbor;
 import server.ServerAddress;
+import shared.LogFile;
 import shared.PerChunkUIDGenerator;
 
 public class GameLogic {
@@ -25,10 +26,11 @@ public class GameLogic {
 	public HashMap<Neighbor,ArrayList<Bullet>> bulletTransfer = new HashMap<Neighbor,ArrayList<Bullet>>();
 	
 	private Adler32 checkSumt = new Adler32();
+	private LogFile log = null;
 	
 	
-	public GameLogic() {
-		
+	public GameLogic(LogFile log) {
+		this.log = log;
 		
 		synchronized(playerTransfer) {
 			playerTransfer.put(Neighbor.TOP,new ArrayList<Player>());
@@ -105,7 +107,7 @@ public class GameLogic {
     		int input = wrapped.getInt();
     		
     		if (!players.containsKey(id)) {
-    			System.out.println("Player id "+id);
+    			log.println("Player id "+id);
     			synchronized (players) {
     				players.put(id,new Player(id));
     			}
@@ -137,10 +139,10 @@ public class GameLogic {
     	
     	//Recieve Transfer
     	if (wrapped.get() > 0) { //got a transfer
-    		System.out.println("Client got transfer processing!");
+    		log.println("Client got transfer processing!");
     		int pCount = wrapped.getInt();
         	for (int p=0;p<pCount;p++) {
-        		System.out.println("PLAYA!");
+        		log.println("PLAYA!");
         		int id = wrapped.getInt();
     			Player temp = new Player(id);
     			temp.decode(wrapped);
@@ -151,7 +153,7 @@ public class GameLogic {
     		
 	    	int bCount = wrapped.getInt();
 	    	for (int b=0;b<bCount;b++) {
-	    		System.out.println("BULLET!");
+	    		log.println("BULLET!");
 	    		int id = wrapped.getInt();
 				Bullet temp = new Bullet(id);
 				temp.decode(wrapped);

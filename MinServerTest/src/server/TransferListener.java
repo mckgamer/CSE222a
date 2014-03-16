@@ -7,6 +7,8 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import shared.ServerMessage;
+
 public class TransferListener extends Thread {
 
 	public DatagramSocket socket = null;
@@ -34,11 +36,23 @@ public class TransferListener extends Thread {
 				packet = new DatagramPacket(buf, buf.length);
 				socket.receive(packet);
 				recieved = true;
-				System.out.println("YAY got transfers from " + packet.getPort());
+				Server.log.println("YAY got transfers from " + packet.getPort());
 
 				ByteBuffer tData = ByteBuffer.wrap(packet.getData(),0,40); //TODO remove 40
-				synchronized (transfers) {
-					transfers.add(tData);
+				
+				//Extract packet header and operate on packet
+				byte messageType = tData.get();
+				switch(messageType) {
+				case ServerMessage.TRANSFEROBJ:
+					synchronized (transfers) {
+						transfers.add(tData);
+					}
+					break;
+				case ServerMessage.NEIGHBORNOTE:
+					//We have a new neighbor!
+					break;
+				default:
+					Server.log.println("Unknown message type " + messageType);
 				}
 
 				recieved = false;
@@ -49,7 +63,7 @@ public class TransferListener extends Thread {
 			}
 		}
 		socket.close();
-		System.out.println("Dead Really");
+		Server.log.println("Dead Really");
 	}
 
 }

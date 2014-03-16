@@ -13,13 +13,15 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import shared.ServerMessage;
+
 public class TransferSender extends Thread {
 	
 	public DatagramSocket socket = null;
 	public HashMap<Neighbor,ArrayList<Player>> ptransfers;
 	public HashMap<Neighbor,ArrayList<Bullet>> btransfers;
 	public HashMap<Neighbor,ServerAddress> neighbors;
-	private boolean condition = true;
+	private boolean isRunning = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 
@@ -32,12 +34,12 @@ public class TransferSender extends Thread {
 	}
 
 	public void kill() {
-		condition = false;
+		isRunning = false;
 	}
 
 	public void run() {
 
-		while (condition) {
+		while (isRunning) {
 			try {
 				synchronized (ptransfers) {
 					
@@ -48,6 +50,8 @@ public class TransferSender extends Thread {
 							byte[] buftemp = new byte[1500]; //TODO right size
 		                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
 		                	//TODO encode total size somehow
+		                	wrapped.put(ServerMessage.TRANSFEROBJ);
+		                	
 		                	wrapped.putInt(ptrans.size());
 		                	for (Player p : ptrans) {
 		                		wrapped.put(p.encode());
@@ -58,7 +62,7 @@ public class TransferSender extends Thread {
 		                		wrapped.put(b.encode());
 		                	}
 		    				DatagramPacket packet2 = new DatagramPacket(buftemp, buftemp.length, neighbors.get(neigh).ip, neighbors.get(neigh).port);
-		    				System.out.println("Sending out transfers to "+neighbors.get(neigh).port);
+		    				Server.log.println("Sending out transfers to "+neighbors.get(neigh).port);
 		    				socket.send(packet2);
 		    				
 		    				ptrans.clear();
@@ -75,7 +79,7 @@ public class TransferSender extends Thread {
 			}
 		}
 		socket.close();
-		System.out.println("Dead Really");
+		Server.log.println("Dead Really");
 	}
 
 }
