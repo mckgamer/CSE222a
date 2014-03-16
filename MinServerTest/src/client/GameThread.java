@@ -30,7 +30,7 @@ public class GameThread extends Thread {
 	public float normal = 1;
 	public float outOfSync = 0;
 	
-	public int port = 4445;
+	public int port = 4440;
 	
 	public GameThread(InetAddress host, int port, int xOffSet, int yOffSet) {
 		this.host = host;
@@ -41,15 +41,16 @@ public class GameThread extends Thread {
 	
 	@Override
 	public void run() {
-		/*
+		
 		try {
 			host = InetAddress.getByName("127.0.0.1");
+			//host = InetAddress.getByName("137.110.53.55");
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		*/
-		host = null;
+		
+		//host = null;
 
 		try {
 			// get a datagram socket
