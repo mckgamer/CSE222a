@@ -14,7 +14,7 @@ import shared.ServerMessage;
 
 public class GameThread extends Thread {
 	
-	public GameLogic gameState = new GameLogic(NewClient.log);
+	public GameLogic gameState = new GameLogic(Client.log);
 	
 	boolean isRunning = true;
 	int bytes = 1500;
@@ -46,7 +46,7 @@ public class GameThread extends Thread {
 			//host = InetAddress.getByName("137.110.53.55");
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
-			NewClient.log.printerr(e1);
+			Client.log.printerr(e1);
 		}
 
 		try {
@@ -58,7 +58,7 @@ public class GameThread extends Thread {
 		        	try {
 						Thread.sleep(5);
 					} catch (InterruptedException e) {
-						NewClient.log.printerr(e);
+						Client.log.printerr(e);
 					}
 					continue;
 				}
@@ -90,7 +90,7 @@ public class GameThread extends Thread {
 	
 			socket.close();
 		} catch (Exception e) {
-			NewClient.log.printerr(e);
+			Client.log.printerr(e);
 		}
 	}
 	
@@ -115,20 +115,21 @@ public class GameThread extends Thread {
 			break;
 		case ServerMessage.OUTOFSYNC:
 			// im out of sync, full state included
-			NewClient.log.println("Out of sync at " + gameState.checkSum());
+			Client.log.println("Out of sync at " + gameState.checkSum());
 			byte actualCheckSum = wPacket.get();
 			gameState.decodeState(wPacket);
-			NewClient.log.println("Synced to " + actualCheckSum);
+
+			Client.log.println("Synced to " + actualCheckSum);
 			gameState.checkSumt.reset();
 	        gameState.checkSumt.update(gameState.getState());
-			NewClient.log.println("Actually Synced to " + gameState.checkSum());
+	        Client.log.println("Actually Synced to " + gameState.checkSum());
 			outOfSync++;
 			break;
 		case ServerMessage.IDASSIGN:
 			// im just connecting, getting my unique id
-			NewClient.log.println("Im getting my ID yay!");
+			Client.log.println("Im getting my ID yay!");
 			mClientID = wPacket.getInt();
-			NewClient.log.println("Got the id " + mClientID);
+			Client.log.println("Got the id " + mClientID);
 			handleResponse(packet, socket, buf);
 			break;
 
@@ -142,6 +143,7 @@ public class GameThread extends Thread {
     public void setHost(InetAddress host, int port) {
     	this.host = host;
     	this.port = port;
+		Client.log.println("Address set: " + host.getHostAddress() + ":" + port);
     }
 
 }

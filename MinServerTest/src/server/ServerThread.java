@@ -5,12 +5,10 @@ import game.GameLogic;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import client.NewClient;
+import java.util.Random;
 
 import shared.ServerMessage;
 
@@ -21,6 +19,7 @@ public class ServerThread extends Thread {
 
 	private TransferListener transferListener;
 	private TransferSender transferSender;
+	private int chunkPriority = 0;
 
 	private int desiredFR = 25;
 	private int windowFR = 5;
@@ -32,6 +31,18 @@ public class ServerThread extends Thread {
 	int bytes = 256;
 
 	private GameLogic dummy;
+
+	public Neighbor toNeighbor() {
+		//ServerAddress address = new ServerAddress(transferListener.socket.getLocalAddress(), transferListener.socket.getLocalPort());
+		ServerAddress address = null;
+		try {
+			address = new ServerAddress("127.0.0.1", transferListener.socket.getLocalPort());
+		} catch (UnknownHostException e) {
+			Server.log.printerr(e);
+		}
+		
+		return new Neighbor(address, chunkPriority);
+	}
 
 	public void kill() {
 		if (isRunning()) {
@@ -61,12 +72,13 @@ public class ServerThread extends Thread {
 		transferListener = new TransferListener(dummy, transferPort,
 				"TransferListener" + transferPort);
 		transferListener.start();
-		transferSender = new TransferSender(dummy, "TransferSender-L"
+		transferSender = new TransferSender(this, dummy, "TransferSender-L"
 				+ listenPort + "-T" + transferPort);
 		transferSender.start();
 
 		socket = new DatagramSocket();
 
+/* Old code
 		int me = listenPort % 4;
 
 		Neighbor nborTop = new Neighbor(new ServerAddress("localhost",
@@ -80,6 +92,23 @@ public class ServerThread extends Thread {
 
 		// neighbors.put(Neighbor.TOPLEFT, new
 		// ServerAddress("localhost",5550+3-me));
+ */
+
+		//Chunk priority is randomly generated
+		Random rand = new Random();
+		chunkPriority = rand.nextInt();
+		
+		Server.log.println("My priority: " + chunkPriority);
+		
+		/*
+		int me = listenPort%4;
+		
+		Neighbor nborTop = new Neighbor(new ServerAddress("localhost",5550+((2+me)%4)), 0);
+		Neighbor nborLeft = new Neighbor(new ServerAddress("localhost",5550+(Math.abs((me-5))%4)), 0);
+		Neighbor nborBottom = new Neighbor(new ServerAddress("localhost",5550+(Math.abs((me-5))%4)), 0);
+		Neighbor nborRight = new Neighbor(new ServerAddress("localhost",5550+((2+me)%4)), 0);
+		
+		//neighbors.put(Neighbor.TOPLEFT, new ServerAddress("localhost",5550+3-me));
 		dummy.neighbors.put(Neighbor.Direction.TOP, nborTop);
 		// neighbors.put(Neighbor.TOPRIGHT, new
 		// ServerAddress("localhost",5550+3-me));
@@ -88,9 +117,8 @@ public class ServerThread extends Thread {
 		// neighbors.put(Neighbor.BOTTOMLEFT, new
 		// ServerAddress("localhost",5550+3-me));
 		dummy.neighbors.put(Neighbor.Direction.BOTTOM, nborRight);
-		// neighbors.put(Neighbor.BOTTOMRIGHT, new
-		// ServerAddress("localhost",5550+3-me));
-
+		//neighbors.put(Neighbor.BOTTOMRIGHT, new ServerAddress("localhost",5550+3-me));
+		*/
 	}
 
 	public void updateClientList(List<String> clients) {

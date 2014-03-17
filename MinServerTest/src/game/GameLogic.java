@@ -16,6 +16,9 @@ public class GameLogic {
 
 	//Each thread has its own UIDGenerator
 	public PerChunkUIDGenerator mUIDGen = new PerChunkUIDGenerator();
+	
+	//Chunk size
+	public static final int CHUNK_SIZE = 500;
 		
 	public HashMap<Integer,Player> players = new HashMap<Integer,Player>();
 	public HashMap<Integer,Bullet> bullets = new HashMap<Integer,Bullet>();
@@ -53,11 +56,11 @@ public class GameLogic {
 			p.y += p.yvel;
 			p.xvel /= 1.03;
 			p.yvel /= 1.03;
-			if (p.x > 500 || p.x < 0 || p.y < 0 || p.y > 500) {
-				if (p.x > 500) { (p).x-= 500; playerTransfer.get(Neighbor.Direction.RIGHT).add(p); }
-				if ((p).x < 0) { (p).x+= 500; playerTransfer.get(Neighbor.Direction.LEFT).add(p); }
-				if ((p).y > 500) { (p).y-= 500; playerTransfer.get(Neighbor.Direction.BOTTOM).add(p); }
-				if ((p).y < 0) { (p).y+= 500; playerTransfer.get(Neighbor.Direction.TOP).add(p); }
+			if (p.x > CHUNK_SIZE || p.x < 0 || p.y < 0 || p.y > CHUNK_SIZE) {
+				if (p.x > CHUNK_SIZE) { (p).x-= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.RIGHT).add(p); }
+				if ((p).x < 0) { (p).x+= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.LEFT).add(p); }
+				if ((p).y > CHUNK_SIZE) { (p).y-= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.BOTTOM).add(p); }
+				if ((p).y < 0) { (p).y+= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.TOP).add(p); }
 				players.remove(p);
 			}
 		}
@@ -78,11 +81,11 @@ public class GameLogic {
 			if (b.life < 0) {
 				kill.add(b.entityID);
 			}
-			if (b.x > 500 || b.x < 0 || b.y < 0 || b.y > 500) {
-				if ((b).x > 500) { (b).x-= 500; bulletTransfer.get(Neighbor.Direction.RIGHT).add(b); }
-				if ((b).x < 0) { (b).x+= 500; bulletTransfer.get(Neighbor.Direction.LEFT).add(b); }
-				if ((b).y > 500) { (b).y-= 500; bulletTransfer.get(Neighbor.Direction.BOTTOM).add(b); }
-				if ((b).y < 0) { (b).y+= 500; bulletTransfer.get(Neighbor.Direction.TOP).add(b); }
+			if (b.x > CHUNK_SIZE || b.x < 0 || b.y < 0 || b.y > CHUNK_SIZE) {
+				if ((b).x > CHUNK_SIZE) { (b).x-= CHUNK_SIZE; bulletTransfer.get(Neighbor.Direction.RIGHT).add(b); }
+				if ((b).x < 0) { (b).x+= CHUNK_SIZE; bulletTransfer.get(Neighbor.Direction.LEFT).add(b); }
+				if ((b).y > CHUNK_SIZE) { (b).y-= CHUNK_SIZE; bulletTransfer.get(Neighbor.Direction.BOTTOM).add(b); }
+				if ((b).y < 0) { (b).y+= CHUNK_SIZE; bulletTransfer.get(Neighbor.Direction.TOP).add(b); }
 				kill.add(b.entityID);
 			}
 			// if b leaves my boundaries then transfer it to another server

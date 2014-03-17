@@ -21,7 +21,7 @@ import test.EnableRoboModeChangeListener;
 import server.Neighbor;
 import server.ServerAddress;
 import client.GameThread;
-import client.NewClient;
+import client.Client;
 
 public class UIThread extends JPanel {
 	
@@ -37,41 +37,43 @@ public class UIThread extends JPanel {
 	public void updateMain() {
 		if (myPlayerIndex == 0) { //TL active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			if (me!=null && me.x < 250) {/*
+
+			if (me!=null && me.x < GameLogic.CHUNK_SIZE / 2) {/*
 				//shift left
 				gThreads.remove(1);
 				gThreads.add(1,gThreads.get(0));//.setHost(gThreads.get(0).host, gThreads.get(0).port);
-				ServerAddress address = myPlayer.gameState.neighbors.get(Neighbor.Direction.LEFT).getAddress();
-				gThreads.get(0).setHost(address.ip, address.port-1110);	//TODO: WTF? Don't hardcode stuff like this!
+				
+				//ServerAddress address = myPlayer.gameState.neighbors.get(Neighbor.Direction.LEFT).getAddress();
+				//gThreads.get(0).setHost(address.ip, address.port-1110);	//TODO: WTF? Don't hardcode stuff like this!
 				myPlayer = gThreads.get(1);
 				myPlayerIndex = 1;
 				input.setGameThread(myPlayer);*/
 			}
-			if (me!=null && me.y < 250) {
+			if (me!=null && me.y < GameLogic.CHUNK_SIZE / 2) {
 				//shift up
 			}
 		} else if (myPlayerIndex == 1) { //TR active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			if (me!=null && me.x > 250) {
+			if (me!=null && me.x > GameLogic.CHUNK_SIZE / 2) {
 				//shift right
 			}
-			if (me!=null && me.y < 250) {
+			if (me!=null && me.y < GameLogic.CHUNK_SIZE / 2) {
 				//shift up
 			}
 		} else if (myPlayerIndex == 2) { //BL active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			if (me.x < 250) {
+			if (me.x < GameLogic.CHUNK_SIZE / 2) {
 				//shift left
 			}
-			if (me.y > 250) {
+			if (me.y > GameLogic.CHUNK_SIZE / 2) {
 				//shift Down
 			}
 		} else { //BR active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			if (me.x > 250) {
+			if (me.x > GameLogic.CHUNK_SIZE / 2) {
 				//shift left
 			}
-			if (me.y > 250) {
+			if (me.y > GameLogic.CHUNK_SIZE / 2) {
 				//shift down
 			}
 		} 
@@ -106,21 +108,20 @@ public class UIThread extends JPanel {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(topBarPanel, BorderLayout.NORTH);
         mainPanel.add(this, BorderLayout.CENTER);
-        this.requestFocus();
         application.add(mainPanel);
 
 
-        application.setSize(700, 700);         // window is 500 pixels wide, 400 high
+        application.setSize(700, 700);	//Window sizes
         application.setVisible(true); 
         
         try {
-			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4440,-250,-250));
-			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4441,250,-250));
-			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4442,-250,250));
-			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4443,250,250));
+			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4440,-GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4441,GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4442,-GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4443,GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
-			NewClient.log.printerr(e1);
+			Client.log.printerr(e1);
 		}
         
         for (GameThread g: gThreads) {
@@ -137,6 +138,7 @@ public class UIThread extends JPanel {
         enableRoboModeButton.addChangeListener(new EnableRoboModeChangeListener(this, input));
         ipTextField.addActionListener(new ConnectToHostActionListener(this, gThreads.get(0), ipTextField));
 
+        this.requestFocus();
         
         while (true) {
         	repaint();
@@ -144,7 +146,7 @@ public class UIThread extends JPanel {
         	try {
 				Thread.sleep(5);
 			} catch (InterruptedException e) {
-				NewClient.log.printerr(e);
+				Client.log.printerr(e);
 			}
         }
     }
@@ -166,13 +168,14 @@ public class UIThread extends JPanel {
         
         //Draw Grid 
         g.setColor(new Color(0,0,250));
-        for (int l=-250;l<751;l+=500) {
-        	g.drawLine(l+pX, 0+pY-250, l+pX, 750+pY);
+        for (int l = -GameLogic.CHUNK_SIZE / 2; l <= GameLogic.CHUNK_SIZE * 3 / 2; l += GameLogic.CHUNK_SIZE) {
+        	g.drawLine(l+pX, 0+pY-GameLogic.CHUNK_SIZE / 2, l+pX, GameLogic.CHUNK_SIZE*3 / 2 + pY);
         }
-        for (int t=-250;t<751;t+=500) {
-        	g.drawLine(0+pX-250, t+pY, 750+pX, t+pY);
+        for (int t = -GameLogic.CHUNK_SIZE / 2; t <= GameLogic.CHUNK_SIZE * 3 / 2; t += GameLogic.CHUNK_SIZE) {
+        	g.drawLine(0 + pX - GameLogic.CHUNK_SIZE / 2, t + pY, GameLogic.CHUNK_SIZE * 3 / 2 + pX, t + pY);
         }
         g.setColor(new Color(0,0,0));
+        drawChunkBorders(g, pX, pY, myPlayer);
         
 			updateMain();
         
@@ -218,6 +221,55 @@ public class UIThread extends JPanel {
 		        }
             }
         }
+    }
+    
+    //Draw chunk borders.  Red means there is no neighbor set, green means there is a neighbor set
+    private void drawChunkBorders(Graphics g, int x, int y, GameThread gt) {
+    	Neighbor top = gt.gameState.neighbors.get(Neighbor.Direction.TOP);
+    	Neighbor left = gt.gameState.neighbors.get(Neighbor.Direction.LEFT);
+    	Neighbor bottom = gt.gameState.neighbors.get(Neighbor.Direction.BOTTOM);
+    	Neighbor right = gt.gameState.neighbors.get(Neighbor.Direction.RIGHT);
+    	
+    	int minX = x - GameLogic.CHUNK_SIZE / 2;
+    	int minY = y - GameLogic.CHUNK_SIZE / 2;
+    	int maxX = x + GameLogic.CHUNK_SIZE / 2;
+    	int maxY = y + GameLogic.CHUNK_SIZE / 2;
+    	
+    	//Top
+    	if(top == null) {
+    		g.setColor(Color.red);
+    	} else {
+    		g.setColor(Color.green);
+    	}
+    	g.drawLine(minX, minY, maxX, minY);
+    	
+    	//Left
+    	if(left == null) {
+    		g.setColor(Color.red);
+    	} else {
+    		g.setColor(Color.green);
+    	}
+    	g.drawLine(minX, minY, minX, maxY);
+    	
+    	//Bottom
+    	if(bottom == null) {
+    		g.setColor(Color.red);
+    	} else {
+    		g.setColor(Color.green);
+    	}
+    	g.drawLine(minX, maxY, maxX, maxY);
+    	
+    	//Right
+    	if(right == null) {
+    		g.setColor(Color.red);
+    	} else {
+    		g.setColor(Color.green);
+    	}
+    	g.drawLine(maxX, minY, maxX, maxY);
+    	
+    	
+    	
+    	g.setColor(Color.black);
     }
 
 

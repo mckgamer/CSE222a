@@ -34,6 +34,10 @@ import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +46,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import shared.LogFile;
+import shared.ServerMessage;
  
 public class Server {
 
@@ -67,6 +72,31 @@ public class Server {
 	    	}
     	}
 
+    	//This sets up thread neighbors
+    	if(threadsStarted == 4) {
+    		DatagramSocket skt = new DatagramSocket();
+
+    		//Send neighbor messages
+    		Neighbor ntl = servers.get(0).toNeighbor();
+    		Neighbor ntr = servers.get(1).toNeighbor();
+    		Neighbor nbl = servers.get(2).toNeighbor();
+    		Neighbor nbr = servers.get(3).toNeighbor();
+
+    		sendNeighborNote(skt, ntl, ntr, Neighbor.Direction.LEFT);
+    		sendNeighborNote(skt, ntr, ntl, Neighbor.Direction.RIGHT);
+
+    		sendNeighborNote(skt, ntl, nbl, Neighbor.Direction.TOP);
+    		sendNeighborNote(skt, nbl, ntl, Neighbor.Direction.BOTTOM);
+
+    		sendNeighborNote(skt, ntr, nbr, Neighbor.Direction.TOP);
+    		sendNeighborNote(skt, nbr, ntr, Neighbor.Direction.BOTTOM);
+
+    		sendNeighborNote(skt, nbl, nbr, Neighbor.Direction.LEFT);
+    		sendNeighborNote(skt, nbr, nbl, Neighbor.Direction.RIGHT);
+
+    		skt.close();
+    	}
+    	
     	//servers.add(new ServerThread(4797, 4446));
 
     	display = new JFrame();
@@ -81,7 +111,6 @@ public class Server {
 					}
 					
 				}
-				
 			}
 		);
 
@@ -97,6 +126,32 @@ public class Server {
         }
 
     	display.setVisible(true);
+    }
+
+    //TODO: Put this in a more logical place, like Neighbor or ServerMessage
+    public static void sendNeighborNote(DatagramSocket skt, Neighbor from, Neighbor to, Neighbor.Direction dir) {
+    	final int neighborMessageSize = Neighbor.ENCODE_SIZE + 8;
+		byte [] buf = new byte[neighborMessageSize];
+		ByteBuffer wrapped = ByteBuffer.wrap(buf);
+		
+		wrapped.put(ServerMessage.NEIGHBORNOTE);
+		wrapped.put(Neighbor.dirToByte(dir));
+		from.encode(wrapped);
+		DatagramPacket pkt = new DatagramPacket(buf, neighborMessageSize, to.getAddress().ip, to.getAddress().port);
+		
+		/*
+		String s = "";
+		for(int i = 0; i < neighborMessageSize; ++i) {
+			s += "{" + buf[i] + "} ";
+		}
+		log.println(s);
+		*/
+		try {
+			skt.send(pkt);
+		} catch (IOException e) {
+			log.printerr(e);
+			log.println(from + " -> " + to);
+		}
     }
     
     public static void close() {
