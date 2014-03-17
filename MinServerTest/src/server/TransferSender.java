@@ -26,6 +26,7 @@ public class TransferSender extends Thread {
 	private GameLogic myLogic;
 	private ServerThread myThread;
 	private boolean isRunning = true;
+	private boolean isPaused = false;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 

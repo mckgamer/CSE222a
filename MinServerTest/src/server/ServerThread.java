@@ -3,6 +3,8 @@ package server;
 import game.GameLogic;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.UnknownHostException;
@@ -10,9 +12,11 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Random;
 
+import javax.swing.Icon;
+
 import shared.ServerMessage;
 
-public class ServerThread extends Thread {
+public class ServerThread extends Thread /*Process*/ {
 
 	protected DatagramSocket socket = null;
 	private ClientListener clientListener;
@@ -24,6 +28,7 @@ public class ServerThread extends Thread {
 	private int desiredFR = 25;
 	private int windowFR = 5;
 	private int stallFR = 20;
+	//private String name = "";
 
 	private double desiredMS = 1000 / (desiredFR / windowFR);
 	private boolean isRunning = true;
@@ -62,6 +67,8 @@ public class ServerThread extends Thread {
 	public ServerThread(int listenPort, int transferPort, String name)
 			throws IOException {
 		super(name);
+		//super();
+		//this.name = name;
 
 		dummy = new GameLogic(Server.log);
 
@@ -246,6 +253,50 @@ public class ServerThread extends Thread {
 
 		Server.log.println("Dead");
 		clientListener.kill();
+		transferSender.kill();
+		transferListener.kill();
+	}
+/*
+	@Override
+	public void destroy() {
+		isRunning = false;
 	}
 
+	@Override
+	public int exitValue() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public InputStream getErrorStream() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public InputStream getInputStream() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public OutputStream getOutputStream() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int waitFor() throws InterruptedException {
+		//TODO: Does this need to be fixed?
+		transferListener.wait();
+		transferSender.wait();
+		clientListener.wait();
+		return 0;
+	}
+
+	public String getName() {
+		return name;
+	}
+*/
 }
