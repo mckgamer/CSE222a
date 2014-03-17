@@ -5,14 +5,10 @@ import game.GameLogic;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import client.Client;
+import java.util.Random;
 
 import shared.ServerMessage;
 
@@ -82,7 +78,12 @@ public class ServerThread extends Thread {
 
 		socket = new DatagramSocket();
 
-
+		//Chunk priority is randomly generated
+		Random rand = new Random();
+		chunkPriority = rand.nextInt();
+		
+		Server.log.println("My priority: " + chunkPriority);
+		
 		/*
 		int me = listenPort%4;
 		
