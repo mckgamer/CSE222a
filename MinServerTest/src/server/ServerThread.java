@@ -5,12 +5,14 @@ import game.GameLogic;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import client.NewClient;
+import client.Client;
 
 import shared.ServerMessage;
 
@@ -24,7 +26,13 @@ public class ServerThread extends Thread {
 	private int chunkPriority = 0;
 
 	public Neighbor toNeighbor() {
-		ServerAddress address = new ServerAddress(transferListener.socket.getLocalAddress(), transferListener.socket.getLocalPort());
+		//ServerAddress address = new ServerAddress(transferListener.socket.getLocalAddress(), transferListener.socket.getLocalPort());
+		ServerAddress address = null;
+		try {
+			address = new ServerAddress("127.0.0.1", transferListener.socket.getLocalPort());
+		} catch (UnknownHostException e) {
+			Server.log.printerr(e);
+		}
 		
 		return new Neighbor(address, chunkPriority);
 	}

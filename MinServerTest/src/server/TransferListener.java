@@ -53,8 +53,9 @@ public class TransferListener extends Thread {
 					}
 					break;
 				case ServerMessage.NEIGHBORNOTE:
-					Neighbor.Direction dir = Neighbor.Direction.values()[tData.getInt()];
+					Neighbor.Direction dir = Neighbor.Direction.values()[tData.get()];
 					Neighbor nbor = Neighbor.decode(tData);
+					Server.log.println("Got neighbornote: New neighbor is " + nbor + " to my " + dir);
 					synchronized(myLogic) {
 						Neighbor oldNbor = myLogic.neighbors.put(dir, nbor);
 						if(oldNbor != null) {

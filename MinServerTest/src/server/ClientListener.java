@@ -73,7 +73,7 @@ public class ClientListener extends Thread {
                 recieved = false;
  
             } catch (IOException e) {
-                e.printStackTrace();
+                Server.log.printerr(e);
                 socket.close();
             }
         } 
