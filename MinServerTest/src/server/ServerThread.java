@@ -25,6 +25,17 @@ public class ServerThread extends Thread {
 	private TransferSender transferSender;
 	private int chunkPriority = 0;
 
+	private int desiredFR = 25;
+	private int windowFR = 5;
+	private int stallFR = 20;
+
+	private double desiredMS = 1000 / (desiredFR / windowFR);
+	private boolean isRunning = true;
+
+	int bytes = 256;
+
+	private GameLogic dummy;
+
 	public Neighbor toNeighbor() {
 		//ServerAddress address = new ServerAddress(transferListener.socket.getLocalAddress(), transferListener.socket.getLocalPort());
 		ServerAddress address = null;
@@ -36,17 +47,6 @@ public class ServerThread extends Thread {
 		
 		return new Neighbor(address, chunkPriority);
 	}
-
-	private int desiredFR = 25;
-	private int windowFR = 5;
-	private int stallFR = 20;
-
-	private double desiredMS = 1000 / (desiredFR / windowFR);
-	private boolean isRunning = true;
-
-	int bytes = 256;
-
-	private GameLogic dummy;
 
 	public void kill() {
 		if (isRunning()) {
@@ -76,7 +76,7 @@ public class ServerThread extends Thread {
 		transferListener = new TransferListener(dummy, transferPort,
 				"TransferListener" + transferPort);
 		transferListener.start();
-		transferSender = new TransferSender(dummy, "TransferSender-L"
+		transferSender = new TransferSender(this, dummy, "TransferSender-L"
 				+ listenPort + "-T" + transferPort);
 		transferSender.start();
 

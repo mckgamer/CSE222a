@@ -3,6 +3,7 @@ package server;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class Neighbor {
 	
@@ -38,6 +39,27 @@ public class Neighbor {
 		return i;
 	}
 	
+	public static Direction flip(Direction dir) {
+		switch(dir) {
+		case TOPLEFT:
+			return Direction.BOTTOMRIGHT;
+		case TOP:
+			return Direction.BOTTOM;
+		case TOPRIGHT:
+			return Direction.BOTTOMLEFT;
+		case RIGHT:
+			return Direction.LEFT;
+		case BOTTOMRIGHT:
+			return Direction.TOPLEFT;
+		case BOTTOM:
+			return Direction.TOP;
+		case BOTTOMLEFT:
+			return Direction.TOPRIGHT;
+		default:	//LEFT
+			return Direction.RIGHT;
+		}
+	}
+	
 	public Neighbor(ServerAddress address, int priority) {
 		this.address = address;
 		this.priority = priority;
@@ -48,6 +70,12 @@ public class Neighbor {
 		buf.get(ipAddr);
 		int port = buf.getInt();
 		int priority = buf.getInt();
+		
+		//If all received values are 0, we have a nonexistent neighbor
+		byte [] nullIp = {0,0,0,0};
+		if(port == 0 && priority == 0 && Arrays.equals(ipAddr, nullIp)) {
+			return null;
+		}
 		
 		try {
 			return new Neighbor(new ServerAddress(InetAddress.getByAddress(ipAddr), port), priority);

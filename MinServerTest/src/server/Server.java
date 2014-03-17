@@ -82,17 +82,17 @@ public class Server {
     		Neighbor nbl = servers.get(2).toNeighbor();
     		Neighbor nbr = servers.get(3).toNeighbor();
 
-    		sendNeighbor(skt, ntl, ntr, Neighbor.Direction.LEFT);
-    		sendNeighbor(skt, ntr, ntl, Neighbor.Direction.RIGHT);
+    		sendNeighborNote(skt, ntl, ntr, Neighbor.Direction.LEFT);
+    		sendNeighborNote(skt, ntr, ntl, Neighbor.Direction.RIGHT);
 
-    		sendNeighbor(skt, ntl, nbl, Neighbor.Direction.TOP);
-    		sendNeighbor(skt, nbl, ntl, Neighbor.Direction.BOTTOM);
+    		sendNeighborNote(skt, ntl, nbl, Neighbor.Direction.TOP);
+    		sendNeighborNote(skt, nbl, ntl, Neighbor.Direction.BOTTOM);
 
-    		sendNeighbor(skt, ntr, nbr, Neighbor.Direction.TOP);
-    		sendNeighbor(skt, nbr, ntr, Neighbor.Direction.BOTTOM);
+    		sendNeighborNote(skt, ntr, nbr, Neighbor.Direction.TOP);
+    		sendNeighborNote(skt, nbr, ntr, Neighbor.Direction.BOTTOM);
 
-    		sendNeighbor(skt, nbl, nbr, Neighbor.Direction.LEFT);
-    		sendNeighbor(skt, nbr, nbl, Neighbor.Direction.RIGHT);
+    		sendNeighborNote(skt, nbl, nbr, Neighbor.Direction.LEFT);
+    		sendNeighborNote(skt, nbr, nbl, Neighbor.Direction.RIGHT);
 
     		skt.close();
     	}
@@ -128,7 +128,8 @@ public class Server {
     	display.setVisible(true);
     }
 
-    private static void sendNeighbor(DatagramSocket skt, Neighbor from, Neighbor to, Neighbor.Direction dir) {
+    //TODO: Put this in a more logical place, like Neighbor or ServerMessage
+    public static void sendNeighborNote(DatagramSocket skt, Neighbor from, Neighbor to, Neighbor.Direction dir) {
     	final int neighborMessageSize = Neighbor.ENCODE_SIZE + 8;
 		byte [] buf = new byte[neighborMessageSize];
 		ByteBuffer wrapped = ByteBuffer.wrap(buf);

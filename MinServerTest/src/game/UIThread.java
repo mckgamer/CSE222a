@@ -175,6 +175,7 @@ public class UIThread extends JPanel {
         	g.drawLine(0 + pX - GameLogic.CHUNK_SIZE / 2, t + pY, GameLogic.CHUNK_SIZE * 3 / 2 + pX, t + pY);
         }
         g.setColor(new Color(0,0,0));
+        drawChunkBorders(g, pX, pY, myPlayer);
         
 			updateMain();
         
@@ -220,6 +221,55 @@ public class UIThread extends JPanel {
 		        }
             }
         }
+    }
+    
+    //Draw chunk borders.  Red means there is no neighbor set, green means there is a neighbor set
+    private void drawChunkBorders(Graphics g, int x, int y, GameThread gt) {
+    	Neighbor top = gt.gameState.neighbors.get(Neighbor.Direction.TOP);
+    	Neighbor left = gt.gameState.neighbors.get(Neighbor.Direction.LEFT);
+    	Neighbor bottom = gt.gameState.neighbors.get(Neighbor.Direction.BOTTOM);
+    	Neighbor right = gt.gameState.neighbors.get(Neighbor.Direction.RIGHT);
+    	
+    	int minX = x - GameLogic.CHUNK_SIZE / 2;
+    	int minY = y - GameLogic.CHUNK_SIZE / 2;
+    	int maxX = x + GameLogic.CHUNK_SIZE / 2;
+    	int maxY = y + GameLogic.CHUNK_SIZE / 2;
+    	
+    	//Top
+    	if(top == null) {
+    		g.setColor(Color.red);
+    	} else {
+    		g.setColor(Color.green);
+    	}
+    	g.drawLine(minX, minY, maxX, minY);
+    	
+    	//Left
+    	if(left == null) {
+    		g.setColor(Color.red);
+    	} else {
+    		g.setColor(Color.green);
+    	}
+    	g.drawLine(minX, minY, minX, maxY);
+    	
+    	//Bottom
+    	if(bottom == null) {
+    		g.setColor(Color.red);
+    	} else {
+    		g.setColor(Color.green);
+    	}
+    	g.drawLine(minX, maxY, maxX, maxY);
+    	
+    	//Right
+    	if(right == null) {
+    		g.setColor(Color.red);
+    	} else {
+    		g.setColor(Color.green);
+    	}
+    	g.drawLine(maxX, minY, maxX, maxY);
+    	
+    	
+    	
+    	g.setColor(Color.black);
     }
 
 
