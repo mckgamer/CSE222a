@@ -119,8 +119,6 @@ public class GameThread extends Thread {
 			byte actualCheckSum = wPacket.get();
 			gameState.decodeState(wPacket);
 			NewClient.log.println("Synced to " + actualCheckSum);
-			gameState.checkSumt.reset();
-	        gameState.checkSumt.update(gameState.getState());
 			NewClient.log.println("Actually Synced to " + gameState.checkSum());
 			outOfSync++;
 			break;
