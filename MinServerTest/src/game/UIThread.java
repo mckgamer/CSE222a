@@ -108,7 +108,6 @@ public class UIThread extends JPanel {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(topBarPanel, BorderLayout.NORTH);
         mainPanel.add(this, BorderLayout.CENTER);
-        this.requestFocus();
         application.add(mainPanel);
 
 
@@ -139,6 +138,7 @@ public class UIThread extends JPanel {
         enableRoboModeButton.addChangeListener(new EnableRoboModeChangeListener(this, input));
         ipTextField.addActionListener(new ConnectToHostActionListener(this, gThreads.get(0), ipTextField));
 
+        this.requestFocus();
         
         while (true) {
         	repaint();

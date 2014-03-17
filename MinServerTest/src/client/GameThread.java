@@ -62,7 +62,6 @@ public class GameThread extends Thread {
 					}
 					continue;
 				}
-				Client.log.println("Port: " + port);
 				
 				// send request
 				byte[] buf;
