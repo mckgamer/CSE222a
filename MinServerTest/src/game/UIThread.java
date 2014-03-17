@@ -270,6 +270,8 @@ public class UIThread extends JPanel {
     	
     	
     	g.setColor(Color.black);
+    	
+    	g.drawString("My id: " + gt.getName(), x, y);
     }
 
 

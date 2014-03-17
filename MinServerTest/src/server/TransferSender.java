@@ -141,6 +141,7 @@ public class TransferSender extends Thread {
     	myLogic.neighbors.put(dir, newNeighbor);
     	sendNeighborNote(socket, myThread.toNeighbor(), newNeighbor, Neighbor.flip(dir));
 
+    	Server.addServer(newServer);
 		//TODO: Implement NewServer message
 	}
 	
