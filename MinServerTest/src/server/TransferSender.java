@@ -26,6 +26,7 @@ public class TransferSender extends Thread {
 	private GameLogic myLogic;
 	private ServerThread myThread;
 	private boolean isRunning = true;
+	private boolean isPaused = false;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 
@@ -140,6 +141,7 @@ public class TransferSender extends Thread {
     	myLogic.neighbors.put(dir, newNeighbor);
     	sendNeighborNote(socket, myThread.toNeighbor(), newNeighbor, Neighbor.flip(dir));
 
+    	Server.addServer(newServer);
 		//TODO: Implement NewServer message
 	}
 	

@@ -52,9 +52,10 @@ public class Server {
 
     private static JFrame display;
     private static List<ServerThread> servers = new ArrayList<ServerThread>();
-	static int listenPort = 4440;
-	static int transferPort = 5550;
-	static final int NUM_THREADS = 4;
+    private static int listenPort = 4440;
+    private static int transferPort = 5550;
+    private static final int NUM_THREADS = 4;
+    private static JPanel mainPanel = null;
 	public static LogFile log = new LogFile("Server");
 	
     public static void main(String[] args) throws IOException {
@@ -114,18 +115,28 @@ public class Server {
 			}
 		);
 
-    	JPanel panel = new JPanel(new GridLayout(servers.size(), 0));
-    	display.add(panel);
+    	mainPanel = new JPanel(new GridLayout(servers.size(), 0));
+    	display.add(mainPanel);
         for(ServerThread server : servers) {
         	server.start();
         	JPanel serverPanel = new JPanel(new FlowLayout());
         	JButton pingButton = new JButton(server.getName());
         	pingButton.addActionListener(new ServerActionListener(serverPanel, server));
         	serverPanel.add(pingButton);
-        	panel.add(serverPanel);
+        	mainPanel.add(serverPanel);
         }
 
     	display.setVisible(true);
+    }
+    
+    public static void addServer(ServerThread server) {
+    	servers.add(server);
+    	JPanel serverPanel = new JPanel(new FlowLayout());
+    	JButton pingButton = new JButton(server.getName());
+    	pingButton.addActionListener(new ServerActionListener(serverPanel, server));
+    	serverPanel.add(pingButton);
+    	mainPanel.add(serverPanel);
+    	mainPanel.validate();
     }
     
     public static void close() {
