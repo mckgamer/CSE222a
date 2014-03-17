@@ -21,6 +21,13 @@ public class ServerThread extends Thread {
 
 	private TransferListener transferListener;
 	private TransferSender transferSender;
+	private int chunkPriority = 0;
+
+	public Neighbor toNeighbor() {
+		ServerAddress address = new ServerAddress(transferListener.socket.getLocalAddress(), transferListener.socket.getLocalPort());
+		
+		return new Neighbor(address, chunkPriority);
+	}
 
 	private int desiredFR = 25;
 	private int windowFR = 5;
@@ -67,19 +74,16 @@ public class ServerThread extends Thread {
 
 		socket = new DatagramSocket();
 
-		int me = listenPort % 4;
 
-		Neighbor nborTop = new Neighbor(new ServerAddress("localhost",
-				5550 + ((2 + me) % 4)), 0);
-		Neighbor nborLeft = new Neighbor(new ServerAddress("localhost",
-				5550 + (Math.abs((me - 5)) % 4)), 0);
-		Neighbor nborBottom = new Neighbor(new ServerAddress("localhost",
-				5550 + (Math.abs((me - 5)) % 4)), 0);
-		Neighbor nborRight = new Neighbor(new ServerAddress("localhost",
-				5550 + ((2 + me) % 4)), 0);
-
-		// neighbors.put(Neighbor.TOPLEFT, new
-		// ServerAddress("localhost",5550+3-me));
+		/*
+		int me = listenPort%4;
+		
+		Neighbor nborTop = new Neighbor(new ServerAddress("localhost",5550+((2+me)%4)), 0);
+		Neighbor nborLeft = new Neighbor(new ServerAddress("localhost",5550+(Math.abs((me-5))%4)), 0);
+		Neighbor nborBottom = new Neighbor(new ServerAddress("localhost",5550+(Math.abs((me-5))%4)), 0);
+		Neighbor nborRight = new Neighbor(new ServerAddress("localhost",5550+((2+me)%4)), 0);
+		
+		//neighbors.put(Neighbor.TOPLEFT, new ServerAddress("localhost",5550+3-me));
 		dummy.neighbors.put(Neighbor.Direction.TOP, nborTop);
 		// neighbors.put(Neighbor.TOPRIGHT, new
 		// ServerAddress("localhost",5550+3-me));
@@ -88,9 +92,8 @@ public class ServerThread extends Thread {
 		// neighbors.put(Neighbor.BOTTOMLEFT, new
 		// ServerAddress("localhost",5550+3-me));
 		dummy.neighbors.put(Neighbor.Direction.BOTTOM, nborRight);
-		// neighbors.put(Neighbor.BOTTOMRIGHT, new
-		// ServerAddress("localhost",5550+3-me));
-
+		//neighbors.put(Neighbor.BOTTOMRIGHT, new ServerAddress("localhost",5550+3-me));
+		*/
 	}
 
 	public void updateClientList(List<String> clients) {

@@ -9,6 +9,14 @@ public class Neighbor {
 	public enum Direction {
 		TOPLEFT, TOP, TOPRIGHT, LEFT, RIGHT, BOTTOMLEFT, BOTTOM, BOTTOMRIGHT
 	}
+	public static final byte TOPLEFT = 0;
+	public static final byte TOP = 1;
+	public static final byte TOPRIGHT = 2;
+	public static final byte RIGHT = 3;
+	public static final byte BOTTOMRIGHT = 4;
+	public static final byte BOTTOM = 5;
+	public static final byte BOTTOMLEFT = 6;
+	public static final byte LEFT = 7;
 	
 	private ServerAddress address;
 	private int priority;

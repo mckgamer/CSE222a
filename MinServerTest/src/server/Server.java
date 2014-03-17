@@ -34,6 +34,10 @@ import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +71,27 @@ public class Server {
 	    	}
     	}
     	
+    	//This sets up thread neighbors
+    	if(threadsStarted == 4) {
+    		DatagramSocket skt = new DatagramSocket();
+    		byte [] buf = new byte[Neighbor.ENCODE_SIZE + 4];
+    		ByteBuffer wrapped = ByteBuffer.wrap(buf);
+    		DatagramPacket pkt;
+    		
+    		//Send neighbor messages
+    		ServerThread tl = servers.get(0);
+    		ServerThread tr = servers.get(1);
+    		ServerThread bl = servers.get(2);
+    		ServerThread br = servers.get(3);
+    		Neighbor ntl = tl.toNeighbor();
+    		Neighbor ntr = tr.toNeighbor();
+    		Neighbor nbl = bl.toNeighbor();
+    		Neighbor nbr = br.toNeighbor();
+    		
+    		
+    		skt.close();
+    	}
+    	
     	//servers.add(new ServerThread(4797, 4446));
     	
     	display = new JFrame();
@@ -81,7 +106,6 @@ public class Server {
 					}
 					
 				}
-				
 			}
 		);
 
