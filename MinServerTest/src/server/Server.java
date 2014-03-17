@@ -82,17 +82,17 @@ public class Server {
     		Neighbor nbl = servers.get(2).toNeighbor();
     		Neighbor nbr = servers.get(3).toNeighbor();
 
-    		sendNeighborNote(skt, ntl, ntr, Neighbor.Direction.LEFT);
-    		sendNeighborNote(skt, ntr, ntl, Neighbor.Direction.RIGHT);
+    		TransferSender.sendNeighborNote(skt, ntl, ntr, Neighbor.Direction.LEFT);
+    		TransferSender.sendNeighborNote(skt, ntr, ntl, Neighbor.Direction.RIGHT);
 
-    		sendNeighborNote(skt, ntl, nbl, Neighbor.Direction.TOP);
-    		sendNeighborNote(skt, nbl, ntl, Neighbor.Direction.BOTTOM);
+    		TransferSender.sendNeighborNote(skt, ntl, nbl, Neighbor.Direction.TOP);
+    		TransferSender.sendNeighborNote(skt, nbl, ntl, Neighbor.Direction.BOTTOM);
 
-    		sendNeighborNote(skt, ntr, nbr, Neighbor.Direction.TOP);
-    		sendNeighborNote(skt, nbr, ntr, Neighbor.Direction.BOTTOM);
+    		TransferSender.sendNeighborNote(skt, ntr, nbr, Neighbor.Direction.TOP);
+    		TransferSender.sendNeighborNote(skt, nbr, ntr, Neighbor.Direction.BOTTOM);
 
-    		sendNeighborNote(skt, nbl, nbr, Neighbor.Direction.LEFT);
-    		sendNeighborNote(skt, nbr, nbl, Neighbor.Direction.RIGHT);
+    		TransferSender.sendNeighborNote(skt, nbl, nbr, Neighbor.Direction.LEFT);
+    		TransferSender.sendNeighborNote(skt, nbr, nbl, Neighbor.Direction.RIGHT);
 
     		skt.close();
     	}
@@ -126,32 +126,6 @@ public class Server {
         }
 
     	display.setVisible(true);
-    }
-
-    //TODO: Put this in a more logical place, like Neighbor or ServerMessage
-    public static void sendNeighborNote(DatagramSocket skt, Neighbor from, Neighbor to, Neighbor.Direction dir) {
-    	final int neighborMessageSize = Neighbor.ENCODE_SIZE + 8;
-		byte [] buf = new byte[neighborMessageSize];
-		ByteBuffer wrapped = ByteBuffer.wrap(buf);
-		
-		wrapped.put(ServerMessage.NEIGHBORNOTE);
-		wrapped.put(Neighbor.dirToByte(dir));
-		from.encode(wrapped);
-		DatagramPacket pkt = new DatagramPacket(buf, neighborMessageSize, to.getAddress().ip, to.getAddress().port);
-		
-		/*
-		String s = "";
-		for(int i = 0; i < neighborMessageSize; ++i) {
-			s += "{" + buf[i] + "} ";
-		}
-		log.println(s);
-		*/
-		try {
-			skt.send(pkt);
-		} catch (IOException e) {
-			log.printerr(e);
-			log.println(from + " -> " + to);
-		}
     }
     
     public static void close() {

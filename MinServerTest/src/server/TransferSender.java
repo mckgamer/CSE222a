@@ -131,9 +131,37 @@ public class TransferSender extends Thread {
     	
     	Neighbor newNeighbor = newServer.toNeighbor();
     	myLogic.neighbors.put(dir, newNeighbor);
-    	Server.sendNeighborNote(socket, myThread.toNeighbor(), newNeighbor, Neighbor.flip(dir));
+    	sendNeighborNote(socket, myThread.toNeighbor(), newNeighbor, Neighbor.flip(dir));
 
 		//TODO: Implement NewServer message
 	}
+	
+
+
+    //TODO: Put this in a more logical place, like Neighbor or ServerMessage
+    public static void sendNeighborNote(DatagramSocket skt, Neighbor from, Neighbor to, Neighbor.Direction dir) {
+    	final int neighborMessageSize = Neighbor.ENCODE_SIZE + 8;
+		byte [] buf = new byte[neighborMessageSize];
+		ByteBuffer wrapped = ByteBuffer.wrap(buf);
+		
+		wrapped.put(ServerMessage.NEIGHBORNOTE);
+		wrapped.put(Neighbor.dirToByte(dir));
+		from.encode(wrapped);
+		DatagramPacket pkt = new DatagramPacket(buf, neighborMessageSize, to.getAddress().ip, to.getAddress().port);
+		
+		/*
+		String s = "";
+		for(int i = 0; i < neighborMessageSize; ++i) {
+			s += "{" + buf[i] + "} ";
+		}
+		log.println(s);
+		*/
+		try {
+			skt.send(pkt);
+		} catch (IOException e) {
+			Server.log.printerr(e);
+			Server.log.println(from + " -> " + to);
+		}
+    }
 
 }
