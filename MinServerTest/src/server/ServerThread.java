@@ -196,7 +196,7 @@ public class ServerThread extends Thread {
 
 					/* Compute the normal op buffer once. */
 					synchronized (transferListener.transfers) {
-						normalBuf = new byte[offset + 1 + 2 + 80]; // TODO fixme
+						normalBuf = new byte[offset + 1 + 2 + 1 + transferListener.tSize]; // TODO fixme
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
 						nwrapper.put(ServerMessage.NORMALOP);
 						nwrapper.putShort((short) (offset + 1 + 2)); // length
@@ -207,10 +207,10 @@ public class ServerThread extends Thread {
 
 						nwrapper.put((byte) transferListener.transfers.size());
 						for (ByteBuffer t : transferListener.transfers) {
-							int size = t.getInt();
-							nwrapper.put(t.array(), t.position(), size);
+							nwrapper.put(t);
 						}
 						transferListener.transfers.clear();
+						transferListener.tSize = 0;
 					}
 
 					/* Send the appropriate packet to each client. */

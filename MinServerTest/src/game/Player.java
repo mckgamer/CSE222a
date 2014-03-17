@@ -34,7 +34,7 @@ public class Player {
 	}
 	
 	public static int encodeSize() {
-		return 6*8;
+		return 6*4;
 	}
 
 }

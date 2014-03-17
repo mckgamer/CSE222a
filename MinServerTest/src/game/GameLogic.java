@@ -142,11 +142,11 @@ public class GameLogic {
     	}
     	
     	//Recieve Transfer
-    	if (wrapped.get() > 0) { //got a transfer
-    		log.println("Client got transfer processing!");
+    	byte numServerTransfers = wrapped.get();
+    	while (numServerTransfers-- > 0) { //got a transfer
+    		//log.println("Client got transfer processing!");
     		int pCount = wrapped.getInt();
         	for (int p=0;p<pCount;p++) {
-        		log.println("PLAYA!");
         		int id = wrapped.getInt();
     			Player temp = new Player(id);
     			temp.decode(wrapped);
@@ -157,7 +157,6 @@ public class GameLogic {
     		
 	    	int bCount = wrapped.getInt();
 	    	for (int b=0;b<bCount;b++) {
-	    		log.println("BULLET!");
 	    		int id = wrapped.getInt();
 				Bullet temp = new Bullet(id);
 				temp.decode(wrapped);

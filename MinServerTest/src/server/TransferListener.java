@@ -15,6 +15,7 @@ public class TransferListener extends Thread {
 
 	public DatagramSocket socket = null;
 	public ArrayList<ByteBuffer> transfers = new ArrayList<ByteBuffer>();
+	int tSize = 0;
 	private boolean isRunning = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
@@ -49,7 +50,9 @@ public class TransferListener extends Thread {
 				switch(messageType) {
 				case ServerMessage.TRANSFEROBJ:
 					synchronized (transfers) {
-						transfers.add(tData);
+						int mySize = tData.getInt() - 5;
+						tSize += mySize; 
+						transfers.add(ByteBuffer.wrap(packet.getData(),5,mySize));
 					}
 					break;
 				case ServerMessage.NEIGHBORNOTE:
