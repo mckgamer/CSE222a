@@ -34,6 +34,10 @@ import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +46,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import shared.LogFile;
+import shared.ServerMessage;
  
 public class Server {
 
@@ -66,9 +71,34 @@ public class Server {
 	    		transferPort++;
 	    	}
     	}
+
+    	//This sets up thread neighbors
+    	if(threadsStarted == 4) {
+    		DatagramSocket skt = new DatagramSocket();
+
+    		//Send neighbor messages
+    		Neighbor ntl = servers.get(0).toNeighbor();
+    		Neighbor ntr = servers.get(1).toNeighbor();
+    		Neighbor nbl = servers.get(2).toNeighbor();
+    		Neighbor nbr = servers.get(3).toNeighbor();
+
+    		TransferSender.sendNeighborNote(skt, ntl, ntr, Neighbor.Direction.LEFT);
+    		TransferSender.sendNeighborNote(skt, ntr, ntl, Neighbor.Direction.RIGHT);
+
+    		TransferSender.sendNeighborNote(skt, ntl, nbl, Neighbor.Direction.TOP);
+    		TransferSender.sendNeighborNote(skt, nbl, ntl, Neighbor.Direction.BOTTOM);
+
+    		TransferSender.sendNeighborNote(skt, ntr, nbr, Neighbor.Direction.TOP);
+    		TransferSender.sendNeighborNote(skt, nbr, ntr, Neighbor.Direction.BOTTOM);
+
+    		TransferSender.sendNeighborNote(skt, nbl, nbr, Neighbor.Direction.LEFT);
+    		TransferSender.sendNeighborNote(skt, nbr, nbl, Neighbor.Direction.RIGHT);
+
+    		skt.close();
+    	}
     	
     	//servers.add(new ServerThread(4797, 4446));
-    	
+
     	display = new JFrame();
     	display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	display.setSize(640, 480);
@@ -81,7 +111,6 @@ public class Server {
 					}
 					
 				}
-				
 			}
 		);
 

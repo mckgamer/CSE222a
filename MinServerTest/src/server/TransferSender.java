@@ -24,14 +24,16 @@ public class TransferSender extends Thread {
 	public HashMap<Neighbor.Direction,ServerAddress> neighbors;
 	*/
 	private GameLogic myLogic;
+	private ServerThread myThread;
 	private boolean isRunning = true;
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 
-	public TransferSender(GameLogic dummy, String name) throws SocketException {
+	public TransferSender(ServerThread server, GameLogic dummy, String name) throws SocketException {
 		super(name);
 		socket = new DatagramSocket();
 		myLogic = dummy;
+		myThread = server;
 		/*
 		ptransfers = dummy.playerTransfer;
 		btransfers = dummy.bulletTransfer;
@@ -79,6 +81,10 @@ public class TransferSender extends Thread {
 		                	wrapped.reset();
 		                	wrapped.putInt(size);
 		                	
+		                	if(myLogic.neighbors.get(neigh) == null) {
+		                		generateServer(neigh);
+		                	}
+		                	
 		    				DatagramPacket packet2 = new DatagramPacket(
 	    						buftemp,
 	    						buftemp.length,
@@ -104,5 +110,58 @@ public class TransferSender extends Thread {
 		socket.close();
 		Server.log.println("Dead Really");
 	}
+	
+	
+	private void generateServer(Neighbor.Direction dir) {
+		ServerThread newServer = null;
+    	boolean createdServer = false;
+    	int listenPort = 4440;
+    	int transferPort = 5550;
+    	
+    	//Find a valid pair of ports
+    	while (!createdServer) {
+	    	try {
+	    		newServer = new ServerThread(listenPort, transferPort);
+	    		createdServer = true;
+	    	} catch (IOException e) {
+	    		listenPort++;
+	    		transferPort++;
+	    	}
+    	}
+    	
+    	Neighbor newNeighbor = newServer.toNeighbor();
+    	myLogic.neighbors.put(dir, newNeighbor);
+    	sendNeighborNote(socket, myThread.toNeighbor(), newNeighbor, Neighbor.flip(dir));
+
+		//TODO: Implement NewServer message
+	}
+	
+
+
+    //TODO: Put this in a more logical place, like Neighbor or ServerMessage
+    public static void sendNeighborNote(DatagramSocket skt, Neighbor from, Neighbor to, Neighbor.Direction dir) {
+    	final int neighborMessageSize = Neighbor.ENCODE_SIZE + 8;
+		byte [] buf = new byte[neighborMessageSize];
+		ByteBuffer wrapped = ByteBuffer.wrap(buf);
+		
+		wrapped.put(ServerMessage.NEIGHBORNOTE);
+		wrapped.put(Neighbor.dirToByte(dir));
+		from.encode(wrapped);
+		DatagramPacket pkt = new DatagramPacket(buf, neighborMessageSize, to.getAddress().ip, to.getAddress().port);
+		
+		/*
+		String s = "";
+		for(int i = 0; i < neighborMessageSize; ++i) {
+			s += "{" + buf[i] + "} ";
+		}
+		log.println(s);
+		*/
+		try {
+			skt.send(pkt);
+		} catch (IOException e) {
+			Server.log.printerr(e);
+			Server.log.println(from + " -> " + to);
+		}
+    }
 
 }

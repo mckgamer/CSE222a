@@ -3,7 +3,7 @@ package client;
 import shared.LogFile;
 import game.UIThread;
 
-public class NewClient {
+public class Client {
 
 	public static LogFile log = new LogFile("Client");
 	
