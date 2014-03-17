@@ -49,6 +49,13 @@ public class TransferSender extends Thread {
 
 		while (isRunning) {
 			try {
+				
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					Server.log.printerr(e);
+				}
+				
 				synchronized (myLogic.playerTransfer) {
 					
 					for (Neighbor.Direction neigh : myLogic.playerTransfer.keySet()) {

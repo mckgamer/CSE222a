@@ -104,7 +104,7 @@ public class GameLogic {
 	public void updateState(ByteBuffer wrapped) {
     	int index = 1+2;
     	short length = wrapped.getShort();
-    	System.out.println("Total update size input "+length);
+    	//System.out.println("Total update size input "+length);
     	while (index+8 <= length) {
     		int id = wrapped.getInt();
     		
@@ -278,7 +278,7 @@ public class GameLogic {
 		checkSumt.reset(); //TODO remove me, just for debuggin purposes
         checkSumt.update(getState()); //TODO same
         
-		System.out.println("And going to do updates now too!" + wrapped.get());
+		//System.out.println("And going to do updates now too!" + wrapped.get());
 		updateState(wrapped);
     }
 	

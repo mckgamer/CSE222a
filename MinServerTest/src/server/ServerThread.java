@@ -14,7 +14,6 @@ import shared.ServerMessage;
 
 public class ServerThread extends Thread {
 
-	protected DatagramSocket socket = null;
 	private ClientListener clientListener;
 
 	private TransferListener transferListener;
@@ -76,7 +75,6 @@ public class ServerThread extends Thread {
 				+ listenPort + "-T" + transferPort);
 		transferSender.start();
 
-		socket = new DatagramSocket();
 
 /* Old code
 		int me = listenPort % 4;
