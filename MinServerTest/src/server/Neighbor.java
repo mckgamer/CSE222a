@@ -13,7 +13,7 @@ public class Neighbor {
 	private ServerAddress address;
 	private int priority;
 	
-	public static int ENCODE_SIZE = 4 * 2;	//When you add stuff to encode/decode, change this number
+	public static int ENCODE_SIZE = 4 * 3;	//When you add stuff to encode/decode, change this number
 	
 	
 	public Neighbor(ServerAddress address, int priority) {
@@ -25,7 +25,7 @@ public class Neighbor {
 		byte [] ipAddr = new byte[4];
 		buf.get(ipAddr);
 		int port = buf.getInt();
-		int priority = 0;//buf.getInt();
+		int priority = buf.getInt();
 		
 		try {
 			return new Neighbor(new ServerAddress(InetAddress.getByAddress(ipAddr), port), priority);
@@ -35,16 +35,17 @@ public class Neighbor {
 		}
 		return null;
 	}
-	
+
 	public void encode(ByteBuffer buf) {
 		buf.put(address.ip.getAddress(), 0, 4);
 		buf.putInt(address.port);
-		//buf.putInt(priority);
+		buf.putInt(priority);
 	}
+	
 	public ServerAddress getAddress() {
 		return address;
 	}
-	
+
 	public int getPriority() {
 		return priority;
 	}

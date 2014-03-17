@@ -66,9 +66,9 @@ public class Server {
 	    		transferPort++;
 	    	}
     	}
-    	
+
     	//servers.add(new ServerThread(4797, 4446));
-    	
+
     	display = new JFrame();
     	display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	display.setSize(640, 480);

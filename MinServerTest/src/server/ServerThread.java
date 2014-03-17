@@ -74,9 +74,9 @@ public class ServerThread extends Thread {
 		Neighbor nborLeft = new Neighbor(new ServerAddress("localhost",
 				5550 + (Math.abs((me - 5)) % 4)), 0);
 		Neighbor nborBottom = new Neighbor(new ServerAddress("localhost",
-				5550 + (Math.abs((me - 5)) % 4)), 0);
-		Neighbor nborRight = new Neighbor(new ServerAddress("localhost",
 				5550 + ((2 + me) % 4)), 0);
+		Neighbor nborRight = new Neighbor(new ServerAddress("localhost",
+				5550 + (Math.abs((me - 5)) % 4)), 0);
 
 		// neighbors.put(Neighbor.TOPLEFT, new
 		// ServerAddress("localhost",5550+3-me));
