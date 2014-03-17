@@ -1,0 +1,2 @@
+Worst case: NewServer alg visits everything
+Average case: depends on user exploration patterns.
