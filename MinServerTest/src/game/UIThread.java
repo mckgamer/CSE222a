@@ -19,6 +19,7 @@ import javax.swing.event.ChangeListener;
 import test.ConnectToHostActionListener;
 import test.EnableRoboModeChangeListener;
 import server.Neighbor;
+import server.Neighbor.Direction;
 import server.ServerAddress;
 import client.GameThread;
 import client.Client;
@@ -37,44 +38,158 @@ public class UIThread extends JPanel {
 	public void updateMain() {
 		if (myPlayerIndex == 0) { //TL active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-
-			if (me!=null && me.x < GameLogic.CHUNK_SIZE / 2) {/*
-				//shift left
-				gThreads.remove(1);
-				gThreads.add(1,gThreads.get(0));//.setHost(gThreads.get(0).host, gThreads.get(0).port);
-				
-				//ServerAddress address = myPlayer.gameState.neighbors.get(Neighbor.Direction.LEFT).getAddress();
-				//gThreads.get(0).setHost(address.ip, address.port-1110);	//TODO: WTF? Don't hardcode stuff like this!
-				myPlayer = gThreads.get(1);
+			/*input.setGameThread(gThreads.get(2));
+			if (me != null && me.x > 498) {
+				myPlayer.mInput = 0;
+				System.out.println("CAYYYYYYY"+myPlayerIndex);
 				myPlayerIndex = 1;
-				input.setGameThread(myPlayer);*/
+				myPlayer = gThreads.get(myPlayerIndex);
+				input.setGameThread(myPlayer);
+				
+				System.out.println("YAYYYYYYY"+myPlayerIndex);
+			}*/
+			if (me!=null && me.x < GameLogic.CHUNK_SIZE / 2) {
+				//shift left
+				gThreads.get(0).xOffSet *= -1;
+				gThreads.get(1).xOffSet *= -1;
+				gThreads.get(2).xOffSet *= -1;
+				gThreads.get(3).xOffSet *= -1;
+				gThreads.add(0, gThreads.remove(1));
+				gThreads.add(2, gThreads.remove(3));
+				if (gThreads.get(1).gameState.neighbors.get(Direction.LEFT) != null) {
+					gThreads.get(0).setHost(gThreads.get(1).gameState.neighbors.get(Direction.LEFT).getAddress().ip, gThreads.get(1).gameState.neighbors.get(Direction.LEFT).getAddress().port-1110);
+				}
+				if (gThreads.get(3).gameState.neighbors.get(Direction.LEFT) != null) {
+					gThreads.get(2).setHost(gThreads.get(3).gameState.neighbors.get(Direction.LEFT).getAddress().ip, gThreads.get(3).gameState.neighbors.get(Direction.LEFT).getAddress().port-1110);
+				}
+				myPlayerIndex = 1;
 			}
 			if (me!=null && me.y < GameLogic.CHUNK_SIZE / 2) {
 				//shift up
+				gThreads.get(0).yOffSet *= -1;
+				gThreads.get(1).yOffSet *= -1;
+				gThreads.get(2).yOffSet *= -1;
+				gThreads.get(3).yOffSet *= -1;
+				gThreads.add(0, gThreads.remove(2));
+				gThreads.add(1, gThreads.remove(3));
+				if (gThreads.get(2).gameState.neighbors.get(Direction.TOP) != null) {
+					gThreads.get(0).setHost(gThreads.get(2).gameState.neighbors.get(Direction.TOP).getAddress().ip, gThreads.get(2).gameState.neighbors.get(Direction.TOP).getAddress().port-1110);
+				}
+				if (gThreads.get(3).gameState.neighbors.get(Direction.TOP) != null) {
+					gThreads.get(1).setHost(gThreads.get(3).gameState.neighbors.get(Direction.TOP).getAddress().ip, gThreads.get(3).gameState.neighbors.get(Direction.TOP).getAddress().port-1110);
+				}
+				myPlayerIndex = 2;
 			}
 		} else if (myPlayerIndex == 1) { //TR active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
+			/*
+			if (me != null && me.x > 490) {
+				System.out.println("CAYYYYYYY"+myPlayerIndex);
+				myPlayerIndex = 0;
+				myPlayer = gThreads.get(myPlayerIndex);
+				input.setGameThread(myPlayer);
+				System.out.println("YAYYYYYYY"+myPlayerIndex);
+			}*/
+			
 			if (me!=null && me.x > GameLogic.CHUNK_SIZE / 2) {
 				//shift right
+				gThreads.get(0).xOffSet *= -1;
+				gThreads.get(1).xOffSet *= -1;
+				gThreads.get(2).xOffSet *= -1;
+				gThreads.get(3).xOffSet *= -1;
+				gThreads.add(0, gThreads.remove(1));
+				gThreads.add(2, gThreads.remove(3));
+				if (gThreads.get(0).gameState.neighbors.get(Direction.RIGHT) != null) {
+					gThreads.get(1).setHost(gThreads.get(0).gameState.neighbors.get(Direction.RIGHT).getAddress().ip, gThreads.get(0).gameState.neighbors.get(Direction.RIGHT).getAddress().port-1110);
+				}
+				if (gThreads.get(2).gameState.neighbors.get(Direction.RIGHT) != null) {
+					gThreads.get(3).setHost(gThreads.get(2).gameState.neighbors.get(Direction.RIGHT).getAddress().ip, gThreads.get(2).gameState.neighbors.get(Direction.RIGHT).getAddress().port-1110);
+				}
+				myPlayerIndex = 0;
 			}
 			if (me!=null && me.y < GameLogic.CHUNK_SIZE / 2) {
 				//shift up
+				gThreads.get(0).yOffSet *= -1;
+				gThreads.get(1).yOffSet *= -1;
+				gThreads.get(2).yOffSet *= -1;
+				gThreads.get(3).yOffSet *= -1;
+				gThreads.add(0, gThreads.remove(2));
+				gThreads.add(1, gThreads.remove(3));
+				if (gThreads.get(2).gameState.neighbors.get(Direction.TOP) != null) {
+					gThreads.get(0).setHost(gThreads.get(2).gameState.neighbors.get(Direction.TOP).getAddress().ip, gThreads.get(2).gameState.neighbors.get(Direction.TOP).getAddress().port-1110);
+				}
+				if (gThreads.get(3).gameState.neighbors.get(Direction.TOP) != null) {
+					gThreads.get(1).setHost(gThreads.get(3).gameState.neighbors.get(Direction.TOP).getAddress().ip, gThreads.get(3).gameState.neighbors.get(Direction.TOP).getAddress().port-1110);
+				}
+				myPlayerIndex = 3;
 			}
 		} else if (myPlayerIndex == 2) { //BL active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			if (me.x < GameLogic.CHUNK_SIZE / 2) {
+			if (me!=null && me.x < GameLogic.CHUNK_SIZE / 2) {
 				//shift left
+				gThreads.get(0).xOffSet *= -1;
+				gThreads.get(1).xOffSet *= -1;
+				gThreads.get(2).xOffSet *= -1;
+				gThreads.get(3).xOffSet *= -1;
+				gThreads.add(0, gThreads.remove(1));
+				gThreads.add(2, gThreads.remove(3));
+				if (gThreads.get(1).gameState.neighbors.get(Direction.LEFT) != null) {
+					gThreads.get(0).setHost(gThreads.get(1).gameState.neighbors.get(Direction.LEFT).getAddress().ip, gThreads.get(1).gameState.neighbors.get(Direction.LEFT).getAddress().port-1110);
+				}
+				if (gThreads.get(3).gameState.neighbors.get(Direction.LEFT) != null) {
+					gThreads.get(2).setHost(gThreads.get(3).gameState.neighbors.get(Direction.LEFT).getAddress().ip, gThreads.get(3).gameState.neighbors.get(Direction.LEFT).getAddress().port-1110);
+				}
+				myPlayerIndex = 3;
 			}
-			if (me.y > GameLogic.CHUNK_SIZE / 2) {
+			if (me!=null && me.y > GameLogic.CHUNK_SIZE / 2) {
 				//shift Down
+				gThreads.get(0).yOffSet *= -1;
+				gThreads.get(1).yOffSet *= -1;
+				gThreads.get(2).yOffSet *= -1;
+				gThreads.get(3).yOffSet *= -1;
+				gThreads.add(0, gThreads.remove(2));
+				gThreads.add(1, gThreads.remove(3));
+				if (gThreads.get(0).gameState.neighbors.get(Direction.BOTTOM) != null) {
+					gThreads.get(2).setHost(gThreads.get(0).gameState.neighbors.get(Direction.BOTTOM).getAddress().ip, gThreads.get(0).gameState.neighbors.get(Direction.BOTTOM).getAddress().port-1110);
+				}
+				if (gThreads.get(1).gameState.neighbors.get(Direction.BOTTOM) != null) {
+					gThreads.get(3).setHost(gThreads.get(1).gameState.neighbors.get(Direction.BOTTOM).getAddress().ip, gThreads.get(1).gameState.neighbors.get(Direction.BOTTOM).getAddress().port-1110);
+				}
+				myPlayerIndex = 0;
 			}
 		} else { //BR active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			if (me.x > GameLogic.CHUNK_SIZE / 2) {
-				//shift left
+			if (me!=null && me.x > GameLogic.CHUNK_SIZE / 2) {
+				//shift right
+				gThreads.get(0).xOffSet *= -1;
+				gThreads.get(1).xOffSet *= -1;
+				gThreads.get(2).xOffSet *= -1;
+				gThreads.get(3).xOffSet *= -1;
+				gThreads.add(0, gThreads.remove(1));
+				gThreads.add(2, gThreads.remove(3));
+				if (gThreads.get(0).gameState.neighbors.get(Direction.RIGHT) != null) {
+					gThreads.get(1).setHost(gThreads.get(0).gameState.neighbors.get(Direction.RIGHT).getAddress().ip, gThreads.get(0).gameState.neighbors.get(Direction.RIGHT).getAddress().port-1110);
+				}
+				if (gThreads.get(2).gameState.neighbors.get(Direction.RIGHT) != null) {
+					gThreads.get(3).setHost(gThreads.get(2).gameState.neighbors.get(Direction.RIGHT).getAddress().ip, gThreads.get(2).gameState.neighbors.get(Direction.RIGHT).getAddress().port-1110);
+				}
+				myPlayerIndex = 2;
 			}
-			if (me.y > GameLogic.CHUNK_SIZE / 2) {
+			if (me!=null && me.y > GameLogic.CHUNK_SIZE / 2) {
 				//shift down
+				gThreads.get(0).yOffSet *= -1;
+				gThreads.get(1).yOffSet *= -1;
+				gThreads.get(2).yOffSet *= -1;
+				gThreads.get(3).yOffSet *= -1;
+				gThreads.add(0, gThreads.remove(2));
+				gThreads.add(1, gThreads.remove(3));
+				if (gThreads.get(0).gameState.neighbors.get(Direction.BOTTOM) != null) {
+					gThreads.get(2).setHost(gThreads.get(0).gameState.neighbors.get(Direction.BOTTOM).getAddress().ip, gThreads.get(0).gameState.neighbors.get(Direction.BOTTOM).getAddress().port-1110);
+				}
+				if (gThreads.get(1).gameState.neighbors.get(Direction.BOTTOM) != null) {
+					gThreads.get(3).setHost(gThreads.get(1).gameState.neighbors.get(Direction.BOTTOM).getAddress().ip, gThreads.get(1).gameState.neighbors.get(Direction.BOTTOM).getAddress().port-1110);
+				}
+				myPlayerIndex = 1;
 			}
 		} 
 		//System.out.println(myPlayer.gameState.neighbors.get(Neighbor.RIGHT).ip.toString());
@@ -186,11 +301,11 @@ public class UIThread extends JPanel {
         	g.drawString("Normal: " + (double) 100*gThread.normal / (gThread.normal + gThread.outOfSync)
     				+ "% OOS: " + (double) 100*gThread.outOfSync / (gThread.normal + gThread.outOfSync) + "%", 10, 20*(temp++));
             
-        	
+        	g.drawString("Port: "+gThread.port, 10, 60+20*temp);
         	//Get Position of this Chunk
             int cX = gThread.xOffSet;//-((gThread.players.get(gThread.mClientID)!=null)?(int)gThread.players.get(gThread.mClientID).x:0)+width/2;
             int cY = gThread.yOffSet;//-((gThread.players.get(gThread.mClientID)!=null)?(int)gThread.players.get(gThread.mClientID).y:0)+height/2;
-            
+
 	        // Drawing code goes here
             synchronized (gThread.gameState.players) {
 		        for (Player p: gThread.gameState.players.values()) {
@@ -271,7 +386,7 @@ public class UIThread extends JPanel {
     	
     	g.setColor(Color.black);
     	
-    	g.drawString("My id: " + gt.getName(), x, y);
+    	g.drawString("My id: " + gt.port, x, y);
     }
 
 

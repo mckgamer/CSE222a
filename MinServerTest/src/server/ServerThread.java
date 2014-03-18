@@ -239,7 +239,6 @@ public class ServerThread extends Thread /*Process*/ {
 							Server.log.printerr(e);
 						}
 					}
-
 					clientListener.clientAddresses.clear();
 				}
 				assert (normalBuf != null);

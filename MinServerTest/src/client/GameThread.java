@@ -54,6 +54,9 @@ public class GameThread extends Thread {
 			DatagramSocket socket = new DatagramSocket();
 	
 			while (isRunning) {
+				if (port == 4444) {
+					System.out.println("talking to the new guy");
+				}
 				if(host == null) {
 		        	try {
 						Thread.sleep(5);
@@ -99,7 +102,9 @@ public class GameThread extends Thread {
 			DatagramSocket socket, byte[] buf) throws IOException {
 		if (outOfSync<.02) {outOfSync=0; } else { outOfSync-=.02; }
 		if (normal<.02) {normal=0; } else { normal-=.02; }
-		
+		if (port == 4444) {
+			System.out.println("talking to the new guy again");
+		}
 		// get response
 		packet = new DatagramPacket(buf, buf.length);
 		socket.receive(packet);

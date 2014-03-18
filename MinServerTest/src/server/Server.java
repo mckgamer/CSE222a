@@ -137,6 +137,7 @@ public class Server {
     	serverPanel.add(pingButton);
     	mainPanel.add(serverPanel);
     	mainPanel.validate();
+    	server.start();
     }
     
     public static void close() {
