@@ -90,6 +90,8 @@ public class Neighbor {
 		buf.put(address.ip.getAddress(), 0, 4);
 		buf.putInt(address.port);
 		buf.putInt(priority);
+		
+		
 	}
 	
 	public ServerAddress getAddress() {

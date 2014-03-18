@@ -21,19 +21,28 @@ public class TestNewServerSearchAlgorithm extends JPanel {
     private static final int GRID_HEIGHT = 100;
     private static final int CELL_WIDTH = 5;
     private static final int CELL_HEIGHT = 5;
+    
     private static final int CELL_EMPTY = 0;
     private static final int CELL_EXISTS = 1;
     private static final int CELL_VISITED = 2;
+    private static final int CELL_NEW_SERVER = 3;
     private int [][]grid = new int[GRID_WIDTH][GRID_HEIGHT];
     
     
     //For the algorithm
     private int x = GRID_WIDTH / 2;
     private int y = GRID_HEIGHT / 2;
-    private enum Direction {
-    	NORTH, EAST, SOUTH, WEST;
-    }
-    Direction dir = Direction.EAST;
+	private static final byte NORTH = 0;
+	private static final byte EAST = 1;
+	private static final byte SOUTH = 2;
+	private static final byte WEST = 3;
+    int dir = EAST;
+    private Stepper [] steppers = {
+    	new NorthStepper(),
+    	new EastStepper(),
+    	new SouthStepper(),
+    	new WestStepper()
+    };
     
     public class NextStepActionListener implements ActionListener {
     	private TestNewServerSearchAlgorithm testPanel;
@@ -93,6 +102,9 @@ public class TestNewServerSearchAlgorithm extends JPanel {
 				case CELL_EXISTS:
 					g.setColor(Color.red);
 					break;
+				case CELL_NEW_SERVER:
+					g.setColor(Color.orange);
+					break;
 				default:
 					g.setColor(Color.black);
 					break;
@@ -112,9 +124,26 @@ public class TestNewServerSearchAlgorithm extends JPanel {
 		}
 		*/
 		
-		System.out.println("Current: N=" + canStepNorth() + " E=" + canStepEast() + " S=" + canStepSouth() + " W=" + canStepWest());
+		//System.out.println("Current: N=" + canStepNorth() + " E=" + canStepEast() + " S=" + canStepSouth() + " W=" + canStepWest());
 		
+		for(int i = 0; i < steppers.length; ++i) {
+			int curStepper = (i + dir) % steppers.length;
+			if(steppers[curStepper].canStep()) {
+				int prevDir = dir;
+				steppers[curStepper].step();
+				dir = curStepper - 1;
+				if(dir < 0) {
+					dir = steppers.length - 1;
+				}
+				//System.out.println("Directions: " + prevDir + "/" + dir + "(" + (curStepper - 1) + "), " +
+				//		i + " <- " + curStepper + ", " + (curStepper + 1) % steppers.length);
+				//dir = (curStepper + 1) % steppers.length;
+				
+				break;
+			}
+		}
 		
+		/*
 		switch(dir) {
 		case WEST:
 			if(canStepWest()) {
@@ -169,50 +198,127 @@ public class TestNewServerSearchAlgorithm extends JPanel {
 			}
 			break;
 		}
+		*/
 		grid[x][y] = CELL_VISITED;
 	}
-	
+	/*
 	private void stepNorth() {
 		y--;
-		dir = Direction.WEST;
+		dir = WEST;
 		System.out.println("North clear, aim west");
 	}
 	
 	private void stepEast() {
 		x++;
-		dir = Direction.NORTH;
+		dir = NORTH;
 		System.out.println("East clear, aim north");
 	}
 	
 	private void stepSouth() {
 		y++;
-		dir = Direction.EAST;
+		dir = EAST;
 		System.out.println("South clear, aim east");
 	}
 	
 	private void stepWest() {
 		x--;
-		dir = Direction.SOUTH;
+		dir = SOUTH;
 		System.out.println("West clear, aim south");
 	}
 	
 	private boolean canStepNorth() {
-		return grid[x][y-1] != CELL_EMPTY;
+		int myCell = grid[x][y-1];
+		return myCell != CELL_EMPTY &&
+			myCell != CELL_NEW_SERVER;
 	}
 	
 	private boolean canStepEast() {
-		return grid[x+1][y] != CELL_EMPTY;
+		int myCell = grid[x+1][y];
+		return myCell != CELL_EMPTY &&
+			myCell != CELL_NEW_SERVER;
 	}
 	
 	private boolean canStepSouth() {
-		return grid[x][y+1] != CELL_EMPTY;
+		int myCell = grid[x][y+1];
+		return myCell != CELL_EMPTY &&
+			myCell != CELL_NEW_SERVER;
 	}
 	
 	private boolean canStepWest() {
-		return grid[x-1][y] != CELL_EMPTY;
+		int myCell = grid[x-1][y];
+		return myCell != CELL_EMPTY &&
+			myCell != CELL_NEW_SERVER;
+	}
+	*/
+	
+	private interface Stepper {
+		public boolean canStep();
+		public void step();
 	}
 	
+	private class NorthStepper implements Stepper {
+		@Override
+		public boolean canStep() {
+			int myCell = grid[x][y-1];
+			return myCell != CELL_EMPTY &&
+				   myCell != CELL_NEW_SERVER;
+		}
+
+		@Override
+		public void step() {
+			y--;
+			dir = WEST;
+			System.out.println("North clear, aim west");
+		}
+	}
 	
+	private class EastStepper implements Stepper {
+		@Override
+		public boolean canStep() {
+			int myCell = grid[x+1][y];
+			return myCell != CELL_EMPTY &&
+				   myCell != CELL_NEW_SERVER;
+		}
+
+		@Override
+		public void step() {
+			x++;
+			dir = NORTH;
+			System.out.println("East clear, aim north");
+		}
+	}
+
+	private class SouthStepper implements Stepper {
+		@Override
+		public boolean canStep() {
+			int myCell = grid[x][y+1];
+			return myCell != CELL_EMPTY &&
+				myCell != CELL_NEW_SERVER;
+		}
+
+		@Override
+		public void step() {
+			y++;
+			dir = EAST;
+			System.out.println("South clear, aim east");
+		}
+	}
+	
+	private class WestStepper implements Stepper {
+		@Override
+		public boolean canStep() {
+			int myCell = grid[x-1][y];
+			return myCell != CELL_EMPTY &&
+				myCell != CELL_NEW_SERVER;
+		}
+
+		@Override
+		public void step() {
+			x--;
+			dir = SOUTH;
+			System.out.println("West clear, aim south");
+		}
+	}
 	
 	public void init() {
 		grid[x][y] = CELL_EXISTS;
@@ -262,5 +368,6 @@ public class TestNewServerSearchAlgorithm extends JPanel {
 			}
 		}
 		grid[x][y] = CELL_VISITED;
+		grid[x][y-1] = CELL_NEW_SERVER;
 	}
 }
