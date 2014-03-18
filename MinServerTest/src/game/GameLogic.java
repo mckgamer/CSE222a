@@ -251,6 +251,7 @@ public class GameLogic {
     	}
     	
     	//Decode the neighbors
+    	neighbors.clear();
 		for(Neighbor.Direction dir : Neighbor.Direction.values()) {
     		//If the neighbor exists, encode it.
     		Neighbor nbor = Neighbor.decode(wrapped);

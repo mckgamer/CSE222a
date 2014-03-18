@@ -100,11 +100,9 @@ public class GameThread extends Thread {
 	
 	public void handleResponse(DatagramPacket packet,
 			DatagramSocket socket, byte[] buf) throws IOException {
-		if (outOfSync<.02) {outOfSync=0; } else { outOfSync-=.02; }
-		if (normal<.02) {normal=0; } else { normal-=.02; }
-		if (port == 4444) {
-			System.out.println("talking to the new guy again");
-		}
+		if (outOfSync<.5) {outOfSync=0; } else { outOfSync-=.5; }
+		if (normal<.5) {normal=0; } else { normal-=.5; }
+
 		// get response
 		packet = new DatagramPacket(buf, buf.length);
 		socket.receive(packet);
