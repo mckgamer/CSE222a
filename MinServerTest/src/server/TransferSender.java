@@ -142,6 +142,10 @@ public class TransferSender extends Thread {
     	sendNeighborNote(socket, myThread.toNeighbor(), newNeighbor, Neighbor.flip(dir));
 
     	Server.addServer(newServer);
+    	
+    	//TODO: Remove debug?
+    	Server.spanel.registerServer(myThread.toNeighbor().getPriority(), dir, newNeighbor.getPriority(), 2);
+    	
 		//TODO: Implement NewServer message
 	}
 	

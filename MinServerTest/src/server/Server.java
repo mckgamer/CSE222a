@@ -29,24 +29,25 @@ package server;
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import shared.LogFile;
-import shared.ServerMessage;
+import test.ServerLayoutPanel;
  
 public class Server {
 
@@ -56,6 +57,8 @@ public class Server {
     private static int transferPort = 5550;
     private static final int NUM_THREADS = 4;
     private static JPanel mainPanel = null;
+    private static JPanel btnPanel = null;
+    public static ServerLayoutPanel spanel = new ServerLayoutPanel(100,100);
 	public static LogFile log = new LogFile("Server");
 	
     public static void main(String[] args) throws IOException {
@@ -96,6 +99,14 @@ public class Server {
     		TransferSender.sendNeighborNote(skt, nbr, nbl, Neighbor.Direction.RIGHT);
 
     		skt.close();
+    		
+    		//Register servers on the server panel
+    		spanel.registerPlayer(1);
+    		spanel.registerPlayer(2);
+    		spanel.registerServer(50, 50, ntl.getPriority(), 1);
+    		spanel.registerServer(51, 50, ntr.getPriority(), 1);
+    		spanel.registerServer(51, 51, nbr.getPriority(), 1);
+    		spanel.registerServer(50, 51, nbl.getPriority(), 1);
     	}
     	
     	//servers.add(new ServerThread(4797, 4446));
@@ -115,15 +126,38 @@ public class Server {
 			}
 		);
 
-    	mainPanel = new JPanel(new GridLayout(servers.size(), 0));
+    	mainPanel = new JPanel(new BorderLayout());
+    	JToggleButton btn = new JToggleButton("Show server buttons");
+    	btn.addChangeListener(new ChangeListener() {
+			private boolean down = false;
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				down = !down;
+				mainPanel.remove(1);
+				if(down) {
+			    	mainPanel.add(btnPanel, BorderLayout.CENTER);
+			    	btnPanel.repaint();
+				} else {
+			    	mainPanel.add(spanel, BorderLayout.CENTER);
+			    	spanel.repaint();
+				}
+				mainPanel.repaint();
+			}
+    		
+    	});
+    	mainPanel.add(btn, BorderLayout.NORTH);
+    	mainPanel.add(spanel, BorderLayout.CENTER);
     	display.add(mainPanel);
+    	
+    	
+    	btnPanel = new JPanel(new GridLayout(servers.size(), 0));
         for(ServerThread server : servers) {
         	server.start();
         	JPanel serverPanel = new JPanel(new FlowLayout());
         	JButton pingButton = new JButton(server.getName());
         	pingButton.addActionListener(new ServerActionListener(serverPanel, server));
         	serverPanel.add(pingButton);
-        	mainPanel.add(serverPanel);
+        	btnPanel.add(serverPanel);
         }
 
     	display.setVisible(true);
@@ -135,8 +169,8 @@ public class Server {
     	JButton pingButton = new JButton(server.getName());
     	pingButton.addActionListener(new ServerActionListener(serverPanel, server));
     	serverPanel.add(pingButton);
-    	mainPanel.add(serverPanel);
-    	mainPanel.validate();
+    	btnPanel.add(serverPanel);
+    	btnPanel.validate();
     }
     
     public static void close() {

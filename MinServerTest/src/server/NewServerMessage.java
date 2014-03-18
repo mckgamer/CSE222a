@@ -5,6 +5,8 @@ import game.GameLogic;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import server.Neighbor.Direction;
+
 
 /**
  * This class can decode a new server message and decide on the next appropriate action,
@@ -13,43 +15,63 @@ import java.util.HashMap;
  *
  */
 public class NewServerMessage {
-	protected byte stepDir;
-	protected byte circleDir;
+	//Information sent in the message
+	protected int ttl;			//Maximum number of steps this message can take before dying (killswitch)
+	protected byte stepDir;		//Index into the appropriate stepper array
+	protected byte circleDir;	//Direction to circle & stepper array initialization
 	protected int xOffset, yOffset;
 	protected Neighbor newServer;
-	public HashMap<Neighbor.Direction,Neighbor> neighbors = new HashMap<Neighbor.Direction,Neighbor>();
+	protected HashMap<Neighbor.Direction,Neighbor> neighbors = new HashMap<Neighbor.Direction,Neighbor>();
 	
+	//Information to determine the next step
 	private Stepper [] steppers;
-	/*
+	
+	//Constants
 	private static final byte STEP_NORTH = 0;
 	private static final byte STEP_EAST = 1;
 	private static final byte STEP_SOUTH = 2;
 	private static final byte STEP_WEST = 3;
-	*/
+
 	private static final byte CIRCLE_CCW = 0;
 	private static final byte CIRCLE_CW = 1;
 	
 	//Accessors
+	
+
+	/* What actions need to be taken
+	 * Cases:
+	 * (1) This server is a neighbor, and I don't have an existing neighbor there
+	 * 		-Set this server as my neighbor
+	 * 		-Send this server a neighbor note
+	 * 		-Forward the message
+	 * (2) This server is a neighbor, but I have an existing neighbor there
+	 * 		-Set the higher-priority server as my neighbor
+	 * 		-Send the higher-priority server a neighbor note
+	 * 		-Send the lower-priority server a kill note
+	 * 		-Stop forwarding the message
+	 * (3) This server is a neighbor, but I already know about this neighbor
+	 * 		-Stop forwarding the message
+	 * (4) This server is not a neighbor
+	 * 		-Forward the message
+	 * (5) This messages TTL has timed out
+	 * 		-Stop forwarding the message
+	 */ 
 	
 	/**
 	 * This function changes the properties of NewServerMessage so that an encode() will produce a message
 	 * that can be sent to the appropriate recipient.
 	 * @return A code indicating actions to be taken by the server thread
 	 */
-	public int updateToNextStep(GameLogic logic) {
-		/*
-		if(circleDir == CIRCLE_CCW) {
-			return stepCounterClockwise(logic);
-		} else {
-			return stepClockwise(logic);
-		}
-		*/
+	public Neighbor.Direction updateToNextStep(GameLogic logic) {
+		Neighbor.Direction dirToStepNext = Neighbor.Direction.TOP;	//Arbitrary direction, should always be overridden
 		
+		//Determine which way to step next
 		for(int i = 0; i < steppers.length; ++i) {
 			byte curStepper = (byte) ((i + stepDir) % steppers.length); 
 			if(steppers[curStepper].canStep(logic)) {
 				//Take a step
 				steppers[curStepper].step(this);
+				dirToStepNext = steppers[curStepper].toDirection();
 				
 				//Update the step direction
 				stepDir = (byte) (curStepper - 1);
@@ -60,10 +82,11 @@ public class NewServerMessage {
 			}
 		}
 		
-		return 0;
+		return dirToStepNext;
 	}
 	
 	public void encode(ByteBuffer buf) {	//Encodes the current status of this new server message
+		buf.putInt(ttl);
 		buf.put(circleDir);
 		buf.put(stepDir);
 		buf.putInt(xOffset);
@@ -87,13 +110,14 @@ public class NewServerMessage {
 	
 	public static NewServerMessage decode(ByteBuffer buf) {
 		//Read the appropriate fields from the buffer
+		int ttl = buf.getInt();
 		byte circleDir = buf.get();
 		byte stepDir = buf.get();
 		int xOffset = buf.getInt();
 		int yOffset = buf.getInt();
 		Neighbor newServer = Neighbor.decode(buf);
 		
-		NewServerMessage msg = new NewServerMessage(circleDir, stepDir, xOffset, yOffset);
+		NewServerMessage msg = new NewServerMessage(ttl, circleDir, stepDir, xOffset, yOffset);
 		
 		//The new server
 		msg.newServer = newServer;
@@ -109,13 +133,15 @@ public class NewServerMessage {
 		return msg;
 	}
 	
-	private NewServerMessage(byte circleDir, byte stepDir, int xOffset, int yOffset) {
+	private NewServerMessage(int ttl, byte circleDir, byte stepDir, int xOffset, int yOffset) {
+		this.ttl = ttl;
 		this.circleDir = circleDir;
 		this.stepDir = stepDir;
 		this.xOffset = xOffset;
 		this.yOffset = yOffset;
 		//The neighbors are set by direct variable modification
 		
+		//The steppers are used to determine the next step; basically, a stand-in for function pointers.
 		steppers = new Stepper[4];
 		if(circleDir == CIRCLE_CCW) {
 			steppers[0] = new NorthStepper();
@@ -132,21 +158,26 @@ public class NewServerMessage {
 	
 	private interface Stepper {
 		public boolean canStep(GameLogic logic);
-		public void step(NewServerMessage msg);
+		public int step(NewServerMessage msg);		//Performs a step and returns the direction to step
+		public Neighbor.Direction toDirection();
 	}
 	
 	private class NorthStepper implements Stepper {
 
 		@Override
-		public void step(NewServerMessage msg) {
-			msg.yOffset--;	//Change the offset
-			//dir = WEST;
-			System.out.println("North clear, aim west");
+		public boolean canStep(GameLogic logic) {
+			return logic.neighbors.get(Neighbor.Direction.TOP) != null;
 		}
 
 		@Override
-		public boolean canStep(GameLogic logic) {
-			return logic.neighbors.get(Neighbor.Direction.TOP) != null;
+		public int step(NewServerMessage msg) {
+			msg.yOffset--;	//Change the offset
+			return STEP_NORTH;
+		}
+
+		@Override
+		public Direction toDirection() {
+			return Neighbor.Direction.TOP;
 		}
 	}
 	
@@ -157,10 +188,14 @@ public class NewServerMessage {
 		}
 
 		@Override
-		public void step(NewServerMessage msg) {
+		public int step(NewServerMessage msg) {
 			msg.xOffset++;
-			//dir = NORTH;
-			System.out.println("East clear, aim north");
+			return STEP_EAST;
+		}
+
+		@Override
+		public Direction toDirection() {
+			return Neighbor.Direction.RIGHT;
 		}
 	}
 
@@ -171,10 +206,14 @@ public class NewServerMessage {
 		}
 
 		@Override
-		public void step(NewServerMessage msg) {
+		public int step(NewServerMessage msg) {
 			msg.yOffset++;
-			//dir = EAST;
-			System.out.println("South clear, aim east");
+			return STEP_SOUTH;
+		}
+
+		@Override
+		public Direction toDirection() {
+			return Neighbor.Direction.BOTTOM;
 		}
 	}
 	
@@ -185,10 +224,14 @@ public class NewServerMessage {
 		}
 
 		@Override
-		public void step(NewServerMessage msg) {
+		public int step(NewServerMessage msg) {
 			msg.xOffset--;
-			//dir = SOUTH;
-			System.out.println("West clear, aim south");
+			return STEP_WEST;
+		}
+
+		@Override
+		public Direction toDirection() {
+			return Neighbor.Direction.LEFT;
 		}
 	}
 	

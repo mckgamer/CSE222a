@@ -37,11 +37,21 @@ public class TestNewServerSearchAlgorithm extends JPanel {
 	private static final byte SOUTH = 2;
 	private static final byte WEST = 3;
     int dir = EAST;
+    /*
+    //Counter-clockwise
     private Stepper [] steppers = {
     	new NorthStepper(),
     	new EastStepper(),
     	new SouthStepper(),
     	new WestStepper()
+    };
+    */
+    //Clockwise
+    private Stepper [] steppers = {
+    	new NorthStepper(),
+    	new WestStepper(),
+    	new SouthStepper(),
+    	new EastStepper()
     };
     
     public class NextStepActionListener implements ActionListener {
