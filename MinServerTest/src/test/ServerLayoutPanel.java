@@ -18,7 +18,6 @@ public class ServerLayoutPanel extends JPanel {
     private HashMap<Integer,Color> playerToColor = new HashMap<Integer,Color>();
     private static final int CELL_WIDTH = 5;
     private static final int CELL_HEIGHT = 5;
-    private Random rand = new Random();
 	
     public ServerLayoutPanel(int width, int height) {
     	gridWidth = width;
@@ -32,8 +31,7 @@ public class ServerLayoutPanel extends JPanel {
     	}
     }
     
-    public void registerPlayer(int id) {
-    	Color color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
+    public void registerPlayer(int id, Color color) {
     	playerToColor.put(id, color);
     }
     
@@ -48,9 +46,6 @@ public class ServerLayoutPanel extends JPanel {
     	int x = 1, y = 1;
     	for(int i = 0; i < gridWidth; ++i) {
     		for(int j = 0; j < gridHeight; ++j) {
-    			if(grid[i][j].serverId != 0) {
-    				Server.log.println("Ids: " + grid[i][j].serverId + ", " + neighborId + ", " + serverId + ", " + playerId);
-    			}
     			if(grid[i][j].serverId == neighborId) {
     				x = i;
     				y = j;

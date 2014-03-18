@@ -30,6 +30,7 @@ package server;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
@@ -101,8 +102,8 @@ public class Server {
     		skt.close();
     		
     		//Register servers on the server panel
-    		spanel.registerPlayer(1);
-    		spanel.registerPlayer(2);
+    		spanel.registerPlayer(1, Color.green);
+    		spanel.registerPlayer(2, Color.red);
     		spanel.registerServer(50, 50, ntl.getPriority(), 1);
     		spanel.registerServer(51, 50, ntr.getPriority(), 1);
     		spanel.registerServer(51, 51, nbr.getPriority(), 1);
