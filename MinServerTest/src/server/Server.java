@@ -169,8 +169,10 @@ public class Server {
     	JButton pingButton = new JButton(server.getName());
     	pingButton.addActionListener(new ServerActionListener(serverPanel, server));
     	serverPanel.add(pingButton);
+
     	btnPanel.add(serverPanel);
     	btnPanel.validate();
+    	server.start();
     }
     
     public static void close() {

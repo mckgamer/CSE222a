@@ -41,7 +41,7 @@ public class Bullet {
 	}
 	
 	public static int encodeSize() {
-		return 6*8;
+		return 6*4;
 	}
 
 }

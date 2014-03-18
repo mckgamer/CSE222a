@@ -63,7 +63,7 @@ public class TransferSender extends Thread {
 						ArrayList<Player> ptrans = myLogic.playerTransfer.get(neigh);
 						ArrayList<Bullet> btrans = myLogic.bulletTransfer.get(neigh);
 						if ((ptrans != null && btrans != null) && (ptrans.size()>0 || btrans.size()>0)) {
-							byte[] buftemp = new byte[1500]; //TODO right size
+							byte[] buftemp = new byte[1+4+4+4+(ptrans.size()*Player.encodeSize())+(btrans.size()*Bullet.encodeSize())]; //TODO right size
 		                	ByteBuffer wrapped = ByteBuffer.wrap(buftemp);
 		                	int startPos = wrapped.position();	//use for measuring buffer size
 		                	
@@ -72,7 +72,7 @@ public class TransferSender extends Thread {
 		                	
 		                	//Reserve 4 bytes for the message size
 		                	wrapped.mark();
-		                	wrapped.putInt(0);
+		                	wrapped.putInt(1+4+4+4+(ptrans.size()*Player.encodeSize())+(btrans.size()*Bullet.encodeSize()));
 		                	
 		                	wrapped.putInt(ptrans.size());
 		                	for (Player p : ptrans) {
@@ -88,7 +88,7 @@ public class TransferSender extends Thread {
 		                	int size = wrapped.position() - startPos;
 		                	wrapped.reset();
 		                	wrapped.putInt(size);
-		                	
+
 		                	if(myLogic.neighbors.get(neigh) == null) {
 		                		generateServer(neigh);
 		                	}

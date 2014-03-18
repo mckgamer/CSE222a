@@ -61,7 +61,7 @@ public class GameLogic {
 				if ((p).x < 0) { (p).x+= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.LEFT).add(p); }
 				if ((p).y > CHUNK_SIZE) { (p).y-= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.BOTTOM).add(p); }
 				if ((p).y < 0) { (p).y+= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.TOP).add(p); }
-				players.remove(p);
+				killPlayers.add(p.entityID);
 			}
 		}
 		
@@ -142,11 +142,11 @@ public class GameLogic {
     	}
     	
     	//Recieve Transfer
-    	if (wrapped.get() > 0) { //got a transfer
-    		log.println("Client got transfer processing!");
+    	byte numServerTransfers = wrapped.get();
+    	while (numServerTransfers-- > 0) { //got a transfer
+    		//log.println("Client got transfer processing!");
     		int pCount = wrapped.getInt();
         	for (int p=0;p<pCount;p++) {
-        		log.println("PLAYA!");
         		int id = wrapped.getInt();
     			Player temp = new Player(id);
     			temp.decode(wrapped);
@@ -157,7 +157,6 @@ public class GameLogic {
     		
 	    	int bCount = wrapped.getInt();
 	    	for (int b=0;b<bCount;b++) {
-	    		log.println("BULLET!");
 	    		int id = wrapped.getInt();
 				Bullet temp = new Bullet(id);
 				temp.decode(wrapped);
@@ -218,36 +217,41 @@ public class GameLogic {
     	mUIDGen.setOther(wrapped.getInt());
     	int pCount = wrapped.getInt();
     	
-    	players.clear(); //TODO should just remove ones that don't show up
-    	for (int p=0;p<pCount;p++) {
-    		int id = wrapped.getInt();
-    		if (!players.containsKey(id)) {
-    			Player temp = new Player(id);
-    			temp.decode(wrapped);
-    			synchronized (players) {
-    				players.put(id,temp);
-    			}
-    		} else {
-    			players.get(id).decode(wrapped);
-    		}
+    	synchronized (players) {
+	    	players.clear(); //TODO should just remove ones that don't show up
+	    	for (int p=0;p<pCount;p++) {
+	    		int id = wrapped.getInt();
+	    		if (!players.containsKey(id)) {
+	    			Player temp = new Player(id);
+	    			temp.decode(wrapped);
+	    			synchronized (players) {
+	    				players.put(id,temp);
+	    			}
+	    		} else {
+	    			players.get(id).decode(wrapped);
+	    		}
+	    	}
     	}
     	int bCount = wrapped.getInt();
     	
-    	bullets.clear(); //TODO should just remove ones that don't show up
-    	for (int b=0;b<bCount;b++) {
-    		int id = wrapped.getInt();
-    		if (!bullets.containsKey(id)) {
-    			Bullet temp = new Bullet(id);
-    			temp.decode(wrapped);
-    			synchronized (bullets) {
-    				bullets.put(id,temp);
-    			}
-    		} else {
-    			bullets.get(id).decode(wrapped);
-    		}
+    	synchronized (bullets) {
+	    	bullets.clear(); //TODO should just remove ones that don't show up
+	    	for (int b=0;b<bCount;b++) {
+	    		int id = wrapped.getInt();
+	    		if (!bullets.containsKey(id)) {
+	    			Bullet temp = new Bullet(id);
+	    			temp.decode(wrapped);
+	    			synchronized (bullets) {
+	    				bullets.put(id,temp);
+	    			}
+	    		} else {
+	    			bullets.get(id).decode(wrapped);
+	    		}
+	    	}
     	}
-		
+    	
     	//Decode the neighbors
+    	neighbors.clear();
 		for(Neighbor.Direction dir : Neighbor.Direction.values()) {
     		//If the neighbor exists, encode it.
     		Neighbor nbor = Neighbor.decode(wrapped);
