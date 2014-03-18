@@ -26,14 +26,14 @@ public class NewServerMessage {
 	//Information to determine the next step
 	private Stepper [] steppers;
 	
-	//Constants
+	//STEP directions are relative to counterclockwise.  For clockwise, EAST and WEST are flipped
 	private static final byte STEP_NORTH = 0;
 	private static final byte STEP_EAST = 1;
 	private static final byte STEP_SOUTH = 2;
 	private static final byte STEP_WEST = 3;
 
-	private static final byte CIRCLE_CCW = 0;
-	private static final byte CIRCLE_CW = 1;
+	public static final byte CIRCLE_CCW = 0;
+	public static final byte CIRCLE_CW = 1;
 	
 	//Accessors
 	
@@ -64,6 +64,7 @@ public class NewServerMessage {
 	 */
 	public Neighbor.Direction updateToNextStep(GameLogic logic) {
 		Neighbor.Direction dirToStepNext = Neighbor.Direction.TOP;	//Arbitrary direction, should always be overridden
+		ttl--;
 		
 		//Determine which way to step next
 		for(int i = 0; i < steppers.length; ++i) {
@@ -131,6 +132,56 @@ public class NewServerMessage {
         	}
     	}
 		return msg;
+	}
+	
+	//This will create a new NewServerMessage for a particular circle
+	// direction, neighbor direction, and other specified inputs.
+	// To send, call updateToNextStep(), then encode().  Make sure to prefix
+	// the buffer with the ServerMessage.NEWSERVER byte before encoding.
+	public static NewServerMessage create(int ttl, byte circleDir, Neighbor.Direction dirToNewServer, Neighbor newServer, Neighbor neighbor) {
+		int x = 0, y = 0;	//offsets
+		byte stepDir = 0;
+    	switch(dirToNewServer) {
+    	case TOPLEFT:
+    		x--;
+    		y--;
+    		break;
+    	case TOP:
+    		y--;
+    		stepDir = STEP_EAST;	//This is equivalent to west for clockwise.
+    		break;
+    	case TOPRIGHT:
+    		x++;
+    		y--;
+    		break;
+    	case RIGHT:
+    		x++;
+    		stepDir = (circleDir == CIRCLE_CCW) ? STEP_SOUTH : STEP_NORTH;
+    		break;
+    	case BOTTOMRIGHT:
+    		x++;
+    		y++;
+    		break;
+    	case BOTTOM:
+    		y++;
+    		stepDir = STEP_WEST;	//This is equivalent to east for clockwise.
+    		break;
+    	case BOTTOMLEFT:
+    		x--;
+    		y++;
+    		break;
+    	case LEFT:
+    		x--;
+    		stepDir = (circleDir == CIRCLE_CCW) ? STEP_NORTH : STEP_SOUTH;
+    		break;
+		default:
+			break;
+    	}
+    	
+    	NewServerMessage msg = new NewServerMessage(ttl, circleDir, stepDir, x, y);
+    	msg.newServer = newServer;
+    	msg.neighbors.put(dirToNewServer, neighbor);
+    	return msg;
 	}
 	
 	private NewServerMessage(int ttl, byte circleDir, byte stepDir, int xOffset, int yOffset) {
