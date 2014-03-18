@@ -43,7 +43,7 @@ public class NewServerMessage {
 	 * (1) This server is a neighbor, and I don't have an existing neighbor there
 	 * 		-Set this server as my neighbor
 	 * 		-Send this server a neighbor note
-	 * 		-Forward the message
+	 * 		-Forward the message (call updateToNextStep, send to neighbor indicated by the return value)
 	 * (2) This server is a neighbor, but I have an existing neighbor there
 	 * 		-Set the higher-priority server as my neighbor
 	 * 		-Send the higher-priority server a neighbor note
@@ -52,7 +52,7 @@ public class NewServerMessage {
 	 * (3) This server is a neighbor, but I already know about this neighbor
 	 * 		-Stop forwarding the message
 	 * (4) This server is not a neighbor
-	 * 		-Forward the message
+	 * 		-Forward the message (call updateToNextStep, send to neighbor indicated by the return value)
 	 * (5) This messages TTL has timed out
 	 * 		-Stop forwarding the message
 	 */ 
