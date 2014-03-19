@@ -206,7 +206,7 @@ public class ServerThread extends Thread /*Process*/ {
 						normalBuf = new byte[offset + 1 + 2 + 1 + transferListener.tSize]; // TODO fixme
 						ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
 						nwrapper.put(ServerMessage.NORMALOP);
-						nwrapper.putShort((short) (offset + 1 + 2)); // length
+						nwrapper.putShort((short) (offset + 1 + 2)); // length //NOT A BUG SIZE DEPENDENT ON UPDATESTATE
 																		// of
 																		// packet
 																		// useful
@@ -244,6 +244,27 @@ public class ServerThread extends Thread /*Process*/ {
 				assert (normalBuf != null);
 				dummy.updateState(ByteBuffer.wrap(normalBuf, 1,
 						normalBuf.length - 1));
+			} else {
+				/* NO ONE IS CONNECTED BUT STILL NEED TO TAKE TRANSFERS! */
+				synchronized (transferListener.transfers) {
+					normalBuf = new byte[1 + 2 + 1 + transferListener.tSize]; // TODO fixme
+					ByteBuffer nwrapper = ByteBuffer.wrap(normalBuf);
+					nwrapper.put(ServerMessage.NORMALOP);
+					nwrapper.putShort((short) (1 + 2)); // length //NOT A BUG SIZE DEPENDENT ON UPDATESTATE
+																	// of
+																	// packet
+																	// useful
+
+					nwrapper.put((byte) transferListener.transfers.size());
+					for (ByteBuffer t : transferListener.transfers) {
+						nwrapper.put(t);
+					}
+					transferListener.transfers.clear();
+					transferListener.tSize = 0;
+				}
+				dummy.updateState(ByteBuffer.wrap(normalBuf, 1,
+						normalBuf.length - 1));
+		
 			}
 			dummy.doPhysics();
 		}
