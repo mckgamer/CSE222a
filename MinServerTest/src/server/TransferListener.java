@@ -15,6 +15,7 @@ public class TransferListener extends Thread {
 
 	public DatagramSocket socket = null;
 	public ArrayList<ByteBuffer> transfers = new ArrayList<ByteBuffer>();
+	public ArrayList<NewServerMessage> newServerMessages = new ArrayList<NewServerMessage>();
 	int tSize = 0;
 	private boolean isRunning = true;
 	public Boolean recieved = false;
@@ -64,6 +65,58 @@ public class TransferListener extends Thread {
 						if(oldNbor != null) {
 							Server.log.println("WARNING: Replacing " + oldNbor + " with " + nbor);
 						}
+					}
+					break;
+				case ServerMessage.NEWSERVER:
+					NewServerMessage msg = NewServerMessage.decode(tData);
+					boolean updateAndForward = true;
+					
+					/* What actions need to be taken
+					 * Cases:
+					 * (1) This server is a neighbor, and I don't have an existing neighbor there
+					 * 		-Set this server as my neighbor
+					 * 		-Send this server a neighbor note
+					 * 		-Forward the message (call updateToNextStep, send to neighbor indicated by the return value)
+					 * (2) This server is a neighbor, but I have an existing neighbor there
+					 * 		-Set the higher-priority server as my neighbor
+					 * 		-Send the higher-priority server a neighbor note
+					 * 		-Send the lower-priority server a kill note
+					 * 		-Stop forwarding the message
+					 * (3) This server is a neighbor, but I already know about this neighbor
+					 * 		-Stop forwarding the message
+					 * (4) This server is not a neighbor
+					 * 		-Forward the message (call updateToNextStep, send to neighbor indicated by the return value)
+					 * (5) This messages TTL has timed out
+					 * 		-Stop forwarding the message
+					 */
+					//Am I a neighbor?
+					int dist = msg.xOffset * msg.xOffset + msg.yOffset * msg.yOffset;
+					if(dist <= 1) {
+						Neighbor.Direction newServerDir = msg.getDirection();
+						Neighbor newServerLoc = myLogic.neighbors.get(newServerDir);
+						if(newServerLoc != null) {		//We already have a neighbor there!
+							updateAndForward = false;	//Stop forwarding this newServerMessage
+							boolean serversNotEqual = !newServerLoc.equals(msg.newServer); 
+							if(newServerLoc.getPriority() < msg.newServer.getPriority()) {
+								//Send killnote to newServerLoc
+								//Send neighbornote to newServer
+								//neighbors.put(newServer)
+							} else if(newServerLoc.getPriority() <= msg.newServer.getPriority() && serversNotEqual) {
+								//Send killnote to newServer
+								//No need to send neighbornote as newServerLoc is already our neighbor
+							}
+							//Other case: servers are equal. We have seen this message before, and can stop sending it.
+						} else {	//No existing neighbor here
+							//put newServer as my neighbor
+							//send newServer a neighbornote
+						}
+					}
+					if(msg.ttl <= 0) {
+						updateAndForward = false;
+					}
+					if(updateAndForward) {
+						Neighbor.Direction sendDir = msg.updateToNextStep(myLogic);
+						//send
 					}
 					break;
 				default:

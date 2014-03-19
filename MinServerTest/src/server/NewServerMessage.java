@@ -86,6 +86,26 @@ public class NewServerMessage {
 		return dirToStepNext;
 	}
 	
+	public Neighbor.Direction getDirection() {
+		if(xOffset < 0 && yOffset == 0) {
+			return Direction.LEFT;
+		} else if(xOffset < 0 && yOffset < 0) {
+			return Direction.TOPLEFT;
+		} else if(xOffset == 0 && yOffset < 0) {
+			return Direction.TOP;
+		} else if(xOffset > 0 && yOffset < 0) {
+			return Direction.TOPRIGHT;
+		} else if(xOffset > 0 && yOffset == 0) {
+			return Direction.RIGHT;
+		} else if(xOffset > 0 && yOffset > 0) {
+			return Direction.BOTTOMRIGHT;
+		} else if(xOffset == 0 && yOffset > 0) {
+			return Direction.BOTTOM;
+		} else /*if(xOffset < 0 && yOffset > 0)*/ {
+			return Direction.BOTTOMLEFT;
+		}
+	}
+	
 	public void encode(ByteBuffer buf) {	//Encodes the current status of this new server message
 		buf.putInt(ttl);
 		buf.put(circleDir);

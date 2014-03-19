@@ -177,4 +177,7 @@ public class TransferSender extends Thread {
 		}
     }
 
+    public static void sendNewServerMessage(DatagramSocket skt, NewServerMessage msg, Neighbor to) {
+    	
+    }
 }

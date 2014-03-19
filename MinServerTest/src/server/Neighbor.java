@@ -25,7 +25,7 @@ public class Neighbor {
 	private ServerAddress address;
 	private int priority;
 	
-	public static int ENCODE_SIZE = 4 * 3;	//When you add stuff to encode/decode, change this number
+	public static final int ENCODE_SIZE = 4 * 3;	//When you add stuff to encode/decode, change this number
 	
 
 	public static byte dirToByte(Direction dir) {
@@ -105,5 +105,17 @@ public class Neighbor {
 	@Override
 	public String toString() {
 		return "Neighbor {" + priority + ": " + address + "}";
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		boolean equal = false;
+		if(o instanceof Neighbor) {
+			Neighbor them = (Neighbor)o;
+			equal = (this.priority == them.priority) &&
+					(this.address.ip.equals(them.address.ip)) &&
+					(this.address.port == them.address.port);
+		}
+		return equal;
 	}
 }
