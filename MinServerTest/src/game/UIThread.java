@@ -34,20 +34,53 @@ public class UIThread extends JPanel {
 	GameThread myPlayer;
 	int myPlayerIndex = 0;
 	
+	public void switchMyPlayerChunk(int id) {
+		myPlayer.gameState.setInControl(null);
+		myPlayer.mInput = 0;
+		System.out.println("CAYYYYYYY"+myPlayerIndex);
+		myPlayerIndex = id;
+		myPlayer = gThreads.get(myPlayerIndex);
+		myPlayer.gameState.setInControl(this);
+		input.setGameThread(myPlayer);
+		System.out.println("YAYYYYYYY"+myPlayerIndex);
+	}
+	
+	public void switchChunk(Direction d) {
+		switch (d) {
+		case BOTTOM:
+			if (myPlayerIndex == 0) {
+				switchMyPlayerChunk(2);
+			} else if (myPlayerIndex == 1) {
+				switchMyPlayerChunk(3);
+			}
+			break;
+		case LEFT:
+			if (myPlayerIndex == 1) {
+				switchMyPlayerChunk(0);
+			} else if (myPlayerIndex == 3) {
+				switchMyPlayerChunk(2);
+			}
+			break;
+		case RIGHT:
+			if (myPlayerIndex == 0) {
+				switchMyPlayerChunk(1);
+			} else if (myPlayerIndex == 2) {
+				switchMyPlayerChunk(3);
+			}
+			break;
+		case TOP:
+			if (myPlayerIndex == 2) {
+				switchMyPlayerChunk(0);
+			} else if (myPlayerIndex == 3) {
+				switchMyPlayerChunk(1);
+			}
+			break;
+		}
+	}
 	
 	public void updateMain() {
 		if (myPlayerIndex == 0) { //TL active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			/*input.setGameThread(gThreads.get(2));
-			if (me != null && me.x > 498) {
-				myPlayer.mInput = 0;
-				System.out.println("CAYYYYYYY"+myPlayerIndex);
-				myPlayerIndex = 1;
-				myPlayer = gThreads.get(myPlayerIndex);
-				input.setGameThread(myPlayer);
-				
-				System.out.println("YAYYYYYYY"+myPlayerIndex);
-			}*/
 			if (me!=null && me.x < GameLogic.CHUNK_SIZE / 2) {
 				//shift left
 				gThreads.get(0).xOffSet *= -1;
@@ -82,14 +115,6 @@ public class UIThread extends JPanel {
 			}
 		} else if (myPlayerIndex == 1) { //TR active
 			Player me = myPlayer.gameState.players.get(myPlayer.mClientID);
-			/*
-			if (me != null && me.x > 490) {
-				System.out.println("CAYYYYYYY"+myPlayerIndex);
-				myPlayerIndex = 0;
-				myPlayer = gThreads.get(myPlayerIndex);
-				input.setGameThread(myPlayer);
-				System.out.println("YAYYYYYYY"+myPlayerIndex);
-			}*/
 			
 			if (me!=null && me.x > GameLogic.CHUNK_SIZE / 2) {
 				//shift right
@@ -250,6 +275,7 @@ public class UIThread extends JPanel {
         input = new GameInput(gThreads.get(myPlayerIndex));
         this.addKeyListener(input);
         myPlayer = gThreads.get(myPlayerIndex);
+        myPlayer.gameState.setInControl(this);
 
         //gThreads.get(1).gameState.neighbors.get(Neighbor.TOP)
 
@@ -284,28 +310,21 @@ public class UIThread extends JPanel {
         	pX = width/2 - (int) pTemp.x - myPlayer.xOffSet;
         	pY = height/2 - (int) pTemp.y - myPlayer.yOffSet;
         }
-        
-        //Draw Grid 
-        g.setColor(new Color(0,0,250));
-        for (int l = -GameLogic.CHUNK_SIZE / 2; l <= GameLogic.CHUNK_SIZE * 3 / 2; l += GameLogic.CHUNK_SIZE) {
-        	g.drawLine(l+pX, 0+pY-GameLogic.CHUNK_SIZE / 2, l+pX, GameLogic.CHUNK_SIZE*3 / 2 + pY);
-        }
-        for (int t = -GameLogic.CHUNK_SIZE / 2; t <= GameLogic.CHUNK_SIZE * 3 / 2; t += GameLogic.CHUNK_SIZE) {
-        	g.drawLine(0 + pX - GameLogic.CHUNK_SIZE / 2, t + pY, GameLogic.CHUNK_SIZE * 3 / 2 + pX, t + pY);
-        }
-        g.setColor(new Color(0,0,0));
-        drawChunkBorders(g, pX, pY, myPlayer);
-        
-			updateMain();
+      
+		updateMain();
         
         int temp = 1;
         for (GameThread gThread : gThreads) {
+        	
+        	//Draw Grid
+        	drawChunkBorders(g, pX, pY, gThread);
         	
         	//Print Stats for each Client
         	g.drawString("Normal: " + (double) 100*gThread.normal / (gThread.normal + gThread.outOfSync)
     				+ "% OOS: " + (double) 100*gThread.outOfSync / (gThread.normal + gThread.outOfSync) + "%", 10, 20*(temp++));
             
         	g.drawString("Port: "+gThread.port, 10, 60+20*temp);
+        	
         	//Get Position of this Chunk
             int cX = gThread.xOffSet;//-((gThread.players.get(gThread.mClientID)!=null)?(int)gThread.players.get(gThread.mClientID).x:0)+width/2;
             int cY = gThread.yOffSet;//-((gThread.players.get(gThread.mClientID)!=null)?(int)gThread.players.get(gThread.mClientID).y:0)+height/2;
@@ -349,10 +368,10 @@ public class UIThread extends JPanel {
     	Neighbor bottom = gt.gameState.neighbors.get(Neighbor.Direction.BOTTOM);
     	Neighbor right = gt.gameState.neighbors.get(Neighbor.Direction.RIGHT);
     	
-    	int minX = x - GameLogic.CHUNK_SIZE / 2;
-    	int minY = y - GameLogic.CHUNK_SIZE / 2;
-    	int maxX = x + GameLogic.CHUNK_SIZE / 2;
-    	int maxY = y + GameLogic.CHUNK_SIZE / 2;
+    	int minX = gt.xOffSet + x;
+    	int minY = gt.yOffSet + y;
+    	int maxX = gt.xOffSet + x + GameLogic.CHUNK_SIZE;
+    	int maxY = gt.yOffSet + y + GameLogic.CHUNK_SIZE;
     	
     	//Top
     	if(top == null) {
@@ -390,7 +409,7 @@ public class UIThread extends JPanel {
     	
     	g.setColor(Color.black);
     	
-    	g.drawString("My id: " + gt.port, x, y);
+    	g.drawString("My id: " + gt.port, x + GameLogic.CHUNK_SIZE / 2 + gt.xOffSet, y + GameLogic.CHUNK_SIZE / 2 + gt.yOffSet);
     }
 
 

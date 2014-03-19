@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.zip.Adler32;
 
 import server.Neighbor;
+import server.Neighbor.Direction;
 import server.ServerAddress;
 import shared.LogFile;
 import shared.PerChunkUIDGenerator;
@@ -31,6 +32,11 @@ public class GameLogic {
 	public Adler32 checkSumt = new Adler32();
 	private LogFile log = null;
 	
+	private UIThread uiControl = null;
+	
+	public void setInControl(UIThread uiControl) { //TODO probably better way to do this
+		this.uiControl = uiControl;
+	}
 	
 	public GameLogic(LogFile log) {
 		this.log = log;
@@ -57,10 +63,10 @@ public class GameLogic {
 			p.xvel /= 1.03;
 			p.yvel /= 1.03;
 			if (p.x > CHUNK_SIZE || p.x < 0 || p.y < 0 || p.y > CHUNK_SIZE) {
-				if (p.x > CHUNK_SIZE) { (p).x-= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.RIGHT).add(p); }
-				if ((p).x < 0) { (p).x+= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.LEFT).add(p); }
-				if ((p).y > CHUNK_SIZE) { (p).y-= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.BOTTOM).add(p); }
-				if ((p).y < 0) { (p).y+= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.TOP).add(p); }
+				if (p.x > CHUNK_SIZE) { (p).x-= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.RIGHT).add(p); if (this.uiControl!=null && p.entityID == uiControl.myPlayer.mClientID) {uiControl.switchChunk(Direction.RIGHT);}}
+				if ((p).x < 0) { (p).x+= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.LEFT).add(p); if (this.uiControl!=null && p.entityID == uiControl.myPlayer.mClientID) {uiControl.switchChunk(Direction.LEFT);}}
+				if ((p).y > CHUNK_SIZE) { (p).y-= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.BOTTOM).add(p); if (this.uiControl!=null && p.entityID == uiControl.myPlayer.mClientID) {uiControl.switchChunk(Direction.BOTTOM);}}
+				if ((p).y < 0) { (p).y+= CHUNK_SIZE; playerTransfer.get(Neighbor.Direction.TOP).add(p); if (this.uiControl!=null && p.entityID == uiControl.myPlayer.mClientID) {uiControl.switchChunk(Direction.TOP);}}
 				killPlayers.add(p.entityID);
 			}
 		}
