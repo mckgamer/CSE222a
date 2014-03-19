@@ -98,6 +98,12 @@ public class Server {
 
     		TransferSender.sendNeighborNote(skt, nbl, nbr, Neighbor.Direction.LEFT);
     		TransferSender.sendNeighborNote(skt, nbr, nbl, Neighbor.Direction.RIGHT);
+    		
+    		TransferSender.sendNeighborNote(skt, ntl, nbr, Neighbor.Direction.TOPLEFT);
+    		TransferSender.sendNeighborNote(skt, nbr, ntl, Neighbor.Direction.BOTTOMRIGHT);
+    		
+    		TransferSender.sendNeighborNote(skt, ntr, nbl, Neighbor.Direction.TOPRIGHT);
+    		TransferSender.sendNeighborNote(skt, nbl, ntr, Neighbor.Direction.BOTTOMLEFT);
 
     		skt.close();
     		

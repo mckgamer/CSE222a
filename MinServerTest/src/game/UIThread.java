@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -36,6 +37,31 @@ public class UIThread extends JPanel {
 
 	private boolean drawGrid = true;
 	
+	public void updateHosts(HashMap<Direction, Neighbor> neighbors) {
+		switch (myPlayerIndex) {
+		case 0:
+			gThreads.get(1).setHost(neighbors.get(Direction.RIGHT).getAddress().ip, neighbors.get(Direction.RIGHT).getAddress().port-1110);
+			gThreads.get(2).setHost(neighbors.get(Direction.BOTTOM).getAddress().ip, neighbors.get(Direction.BOTTOM).getAddress().port-1110);
+			gThreads.get(3).setHost(neighbors.get(Direction.BOTTOMRIGHT).getAddress().ip, neighbors.get(Direction.BOTTOMRIGHT).getAddress().port-1110);
+			break;
+		case 1:
+			gThreads.get(0).setHost(neighbors.get(Direction.LEFT).getAddress().ip, neighbors.get(Direction.LEFT).getAddress().port-1110);
+			gThreads.get(2).setHost(neighbors.get(Direction.BOTTOMLEFT).getAddress().ip, neighbors.get(Direction.BOTTOMLEFT).getAddress().port-1110);
+			gThreads.get(3).setHost(neighbors.get(Direction.BOTTOM).getAddress().ip, neighbors.get(Direction.BOTTOM).getAddress().port-1110);
+			break;
+		case 2:
+			gThreads.get(0).setHost(neighbors.get(Direction.TOP).getAddress().ip, neighbors.get(Direction.TOP).getAddress().port-1110);
+			gThreads.get(1).setHost(neighbors.get(Direction.TOPRIGHT).getAddress().ip, neighbors.get(Direction.TOPRIGHT).getAddress().port-1110);
+			gThreads.get(3).setHost(neighbors.get(Direction.RIGHT).getAddress().ip, neighbors.get(Direction.RIGHT).getAddress().port-1110);
+			break;
+		case 3:
+			gThreads.get(0).setHost(neighbors.get(Direction.TOPLEFT).getAddress().ip, neighbors.get(Direction.TOPLEFT).getAddress().port-1110);
+			gThreads.get(1).setHost(neighbors.get(Direction.TOP).getAddress().ip, neighbors.get(Direction.TOP).getAddress().port-1110);
+			gThreads.get(2).setHost(neighbors.get(Direction.LEFT).getAddress().ip, neighbors.get(Direction.LEFT).getAddress().port-1110);
+			break;
+		}
+		
+	}
 	public void switchMyPlayerChunk(int id) {
 		myPlayer.gameState.setInControl(null);
 		myPlayer.mInput = 0;
@@ -260,14 +286,11 @@ public class UIThread extends JPanel {
         application.setVisible(true); 
         
         try {
-        	String ip0 = "127.0.0.1";
-        	String ip1 = "127.0.0.1";
-        	String ip2 = "127.0.0.1";
-        	String ip3 = "127.0.0.1";
-			gThreads.add(new GameThread(InetAddress.getByName(ip0),4440,-GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
-			gThreads.add(new GameThread(InetAddress.getByName(ip1),4441,GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
-			gThreads.add(new GameThread(InetAddress.getByName(ip2),4442,-GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
-			gThreads.add(new GameThread(InetAddress.getByName(ip3),4443,GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
+        	String ip = "127.0.0.1";
+			gThreads.add(new GameThread(InetAddress.getByName(ip),4440,-GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(null,0,GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(null,0,-GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(null,0,GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			Client.log.printerr(e1);
@@ -326,7 +349,6 @@ public class UIThread extends JPanel {
         
         int temp = 1;
         for (GameThread gThread : gThreads) {
-        	
         	//Draw Grid
         	if (drawGrid) {
         		drawChunkBorders(g, pX, pY, gThread);

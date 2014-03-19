@@ -76,7 +76,7 @@ public class TransferListener extends Thread {
 					
 					//Am I a neighbor?
 					int dist = msg.xOffset * msg.xOffset + msg.yOffset * msg.yOffset;
-					if(dist <= 1) {
+					if(dist <= 2) {
 						Neighbor.Direction newServerDir = msg.getDirection();
 						Neighbor newServerLoc = myLogic.neighbors.get(newServerDir);
 						if(newServerLoc != null) {		//We already have a neighbor there!

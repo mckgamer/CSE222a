@@ -41,30 +41,20 @@ public class GameThread extends Thread {
 	
 	@Override
 	public void run() {
-		try {
-			host = InetAddress.getByName("127.0.0.1");
-			//host = InetAddress.getByName("137.110.53.55");
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			Client.log.printerr(e1);
-		}
 
 		try {
 			// get a datagram socket
 			DatagramSocket socket = new DatagramSocket();
 	
 			while (isRunning) {
-				if (port == 4444) {
-					System.out.println("talking to the new guy");
-				}
-				if(host == null) {
+				if(host == null || port == 0) {
 		        	try {
 						Thread.sleep(5);
 					} catch (InterruptedException e) {
 						Client.log.printerr(e);
 					}
 					continue;
-				}
+				} else {
 				
 				// send request
 				byte[] buf;
@@ -88,7 +78,7 @@ public class GameThread extends Thread {
 				handleResponse(packet, socket, buf);
 	
 				gameState.doPhysics();
-	
+				}
 			}
 	
 			socket.close();

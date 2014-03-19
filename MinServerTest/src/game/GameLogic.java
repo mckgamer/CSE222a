@@ -265,6 +265,9 @@ public class GameLogic {
         		neighbors.put(dir, nbor);
         	}
     	}
+		if (uiControl != null) {
+			uiControl.updateHosts(neighbors);
+		}
 		/*
     	try {
     		if (neighbors.get(Neighbor.Direction.TOP) == null) { neighbors.put(Neighbor.Direction.TOP,new ServerAddress("127.0.0.1",4444)); }
