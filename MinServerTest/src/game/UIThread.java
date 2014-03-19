@@ -298,13 +298,14 @@ public class UIThread extends JPanel {
 
     public void paintComponent(Graphics g)  // draw graphics in the panel
     {
+    	Player pTemp;
+    	if ((pTemp = myPlayer.gameState.players.get(myPlayer.mClientID)) != null) {
         int width = getWidth();             // width of window in pixels
         int height = getHeight();           // height of window in pixels
 
         super.paintComponent(g);            // call superclass to make panel display correctly
-
+        
         //Get position of player
-        Player pTemp;
         int pX = 0, pY = 0;
         if ((pTemp = myPlayer.gameState.players.get(myPlayer.mClientID)) != null) {
         	pX = width/2 - (int) pTemp.x - myPlayer.xOffSet;
@@ -359,6 +360,7 @@ public class UIThread extends JPanel {
 		        }
             }
         }
+		}
     }
     
     //Draw chunk borders.  Red means there is no neighbor set, green means there is a neighbor set
