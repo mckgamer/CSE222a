@@ -8,16 +8,18 @@ public class Bullet {
 	public float x=30, y=30, xvel=0, yvel=0;
 	public int mwidth=18, mheight=18; 
 	public int life = 200;
+	public boolean isReal;
 	
 	public Bullet(int id) {
 		this.entityID = id;
 	}
-	public Bullet(int id, float x, float y, float xvel, float yvel) {
+	public Bullet(int id, float x, float y, float xvel, float yvel, boolean isReal) {
 		this.entityID = id;
 		this.x = x;
 		this.y = y;
 		this.yvel = yvel;
 		this.xvel = xvel;
+		this.isReal = isReal;
 	}
 	
 	public void decode(ByteBuffer buf) {
@@ -26,6 +28,7 @@ public class Bullet {
 		xvel = buf.getFloat();
 		yvel = buf.getFloat();
 		life = buf.getInt();
+		isReal = true;
 	}
 	
 	public byte[] encode() {

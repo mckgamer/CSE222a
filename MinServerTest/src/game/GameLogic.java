@@ -140,7 +140,7 @@ public class GameLogic {
     		if ((input & GameInput.FIRE) != 0){
     			int bid = mUIDGen.getOtherID();
     			synchronized (bullets) {
-    				bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7));
+    				bullets.put(bid, new Bullet(bid,players.get(id).x,players.get(id).y,(float)Math.cos(players.get(id).angle)*7,(float)Math.sin(players.get(id).angle)*7,true));
     			}
 			}
     		

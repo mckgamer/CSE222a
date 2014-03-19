@@ -17,7 +17,7 @@ public class GameThread extends Thread {
 	public GameLogic gameState = new GameLogic(Client.log);
 	
 	boolean isRunning = true;
-	int bytes = 1500;
+	int bytes = 2500;
 	public InetAddress host;
 	
 	public int mClientID = 0;
