@@ -89,11 +89,6 @@ public class NewServerMessage {
 				break;
 			}
 		}
-		if(dirToStepNext == Direction.TOPLEFT) {
-			Server.log.println("ERROR: Invalid direction!");
-		} else {
-			Server.log.println("Actual direction: " + dirToStepNext);
-		}
 		return dirToStepNext;
 	}
 	
