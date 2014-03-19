@@ -230,10 +230,14 @@ public class UIThread extends JPanel {
         application.setVisible(true); 
         
         try {
-			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4440,-GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
-			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4441,GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
-			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4442,-GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
-			gThreads.add(new GameThread(InetAddress.getByName("127.0.0.1"),4443,GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
+        	String ip0 = "127.0.0.1";
+        	String ip1 = "127.0.0.1";
+        	String ip2 = "127.0.0.1";
+        	String ip3 = "127.0.0.1";
+			gThreads.add(new GameThread(InetAddress.getByName(ip0),4440,-GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(InetAddress.getByName(ip1),4441,GameLogic.CHUNK_SIZE / 2,-GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(InetAddress.getByName(ip2),4442,-GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
+			gThreads.add(new GameThread(InetAddress.getByName(ip3),4443,GameLogic.CHUNK_SIZE / 2,GameLogic.CHUNK_SIZE / 2));
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			Client.log.printerr(e1);

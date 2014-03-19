@@ -62,6 +62,10 @@ public class ServerThread extends Thread /*Process*/ {
 		this(listenPort, transferPort, "ServerThread-L" + listenPort + "-T"
 				+ transferPort);
 	}
+	
+	public TransferSender getTransferSender() {
+		return transferSender;
+	}
 
 	public ServerThread(int listenPort, int transferPort, String name)
 			throws IOException {
@@ -75,7 +79,7 @@ public class ServerThread extends Thread /*Process*/ {
 				+ listenPort);
 		clientListener.start();
 
-		transferListener = new TransferListener(dummy, transferPort,
+		transferListener = new TransferListener(this, dummy, transferPort,
 				"TransferListener" + transferPort);
 		transferListener.start();
 		transferSender = new TransferSender(this, dummy, "TransferSender-L"
@@ -274,47 +278,5 @@ public class ServerThread extends Thread /*Process*/ {
 		transferSender.kill();
 		transferListener.kill();
 	}
-/*
-	@Override
-	public void destroy() {
-		isRunning = false;
-	}
 
-	@Override
-	public int exitValue() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public InputStream getErrorStream() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public InputStream getInputStream() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OutputStream getOutputStream() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int waitFor() throws InterruptedException {
-		//TODO: Does this need to be fixed?
-		transferListener.wait();
-		transferSender.wait();
-		clientListener.wait();
-		return 0;
-	}
-
-	public String getName() {
-		return name;
-	}
-*/
 }

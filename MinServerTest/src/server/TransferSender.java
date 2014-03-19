@@ -126,7 +126,7 @@ public class TransferSender extends Thread {
     	int listenPort = 4440;
     	int transferPort = 5550;
     	
-    	//Find a valid pair of ports
+    	//Find a valid pair of ports/create the server
     	while (!createdServer) {
 	    	try {
 	    		newServer = new ServerThread(listenPort, transferPort);
@@ -138,15 +138,24 @@ public class TransferSender extends Thread {
     	}
     	
     	Neighbor newNeighbor = newServer.toNeighbor();
+    	Server.addServer(newServer);
+    	
+
+		//Prepare the NewServer message
+    	NewServerMessage msgCcw = NewServerMessage.create(100, NewServerMessage.CIRCLE_CCW, dir, newNeighbor, myThread.toNeighbor());
+    	NewServerMessage msgCw  = NewServerMessage.create(100, NewServerMessage.CIRCLE_CW,  dir, newNeighbor, myThread.toNeighbor());
+    	Neighbor.Direction ccwSendTo = msgCcw.updateToNextStep(myLogic);
+    	Neighbor.Direction cwSendTo = msgCw.updateToNextStep(myLogic);
+    	
+    	//Send the neighbor note
     	myLogic.neighbors.put(dir, newNeighbor);
     	sendNeighborNote(socket, myThread.toNeighbor(), newNeighbor, Neighbor.flip(dir));
-
-    	Server.addServer(newServer);
     	
     	//TODO: Remove debug?
     	Server.spanel.registerServer(myThread.toNeighbor().getPriority(), dir, newNeighbor.getPriority(), 2);
     	
-		//TODO: Implement NewServer message
+    	sendNewServerMessage(socket, msgCcw, myLogic.neighbors.get(ccwSendTo));
+    	sendNewServerMessage(socket, msgCw, myLogic.neighbors.get(cwSendTo));
 	}
 	
 
@@ -178,6 +187,17 @@ public class TransferSender extends Thread {
     }
 
     public static void sendNewServerMessage(DatagramSocket skt, NewServerMessage msg, Neighbor to) {
-    	
+    	int msgSize = NewServerMessage.SIZE + 1;
+		byte [] buf = new byte[msgSize];
+		ByteBuffer wrapped = ByteBuffer.wrap(buf);
+		
+		wrapped.put(ServerMessage.NEWSERVER);
+		msg.encode(wrapped);
+		DatagramPacket pkt = new DatagramPacket(buf, msgSize, to.getAddress().ip, to.getAddress().port);
+		try {
+			skt.send(pkt);
+		} catch (IOException e) {
+			Server.log.printerr(e);
+		}
     }
 }

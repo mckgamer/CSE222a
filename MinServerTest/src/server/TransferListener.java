@@ -21,11 +21,13 @@ public class TransferListener extends Thread {
 	public Boolean recieved = false;
 	public DatagramPacket packet;
 	private GameLogic myLogic;
+	private ServerThread myServer;
 
-	public TransferListener(GameLogic logic, int port, String name) throws SocketException {
+	public TransferListener(ServerThread server, GameLogic logic, int port, String name) throws SocketException {
 		super(name);
 		socket = new DatagramSocket(port);
 		myLogic = logic;
+		myServer = server;
 	}
 
 	public void kill() {
@@ -69,54 +71,77 @@ public class TransferListener extends Thread {
 					break;
 				case ServerMessage.NEWSERVER:
 					NewServerMessage msg = NewServerMessage.decode(tData);
-					boolean updateAndForward = true;
+					boolean forward = true;
+					Neighbor.Direction sendDir = Neighbor.Direction.TOPLEFT;
 					
-					/* What actions need to be taken
-					 * Cases:
-					 * (1) This server is a neighbor, and I don't have an existing neighbor there
-					 * 		-Set this server as my neighbor
-					 * 		-Send this server a neighbor note
-					 * 		-Forward the message (call updateToNextStep, send to neighbor indicated by the return value)
-					 * (2) This server is a neighbor, but I have an existing neighbor there
-					 * 		-Set the higher-priority server as my neighbor
-					 * 		-Send the higher-priority server a neighbor note
-					 * 		-Send the lower-priority server a kill note
-					 * 		-Stop forwarding the message
-					 * (3) This server is a neighbor, but I already know about this neighbor
-					 * 		-Stop forwarding the message
-					 * (4) This server is not a neighbor
-					 * 		-Forward the message (call updateToNextStep, send to neighbor indicated by the return value)
-					 * (5) This messages TTL has timed out
-					 * 		-Stop forwarding the message
-					 */
 					//Am I a neighbor?
 					int dist = msg.xOffset * msg.xOffset + msg.yOffset * msg.yOffset;
 					if(dist <= 1) {
 						Neighbor.Direction newServerDir = msg.getDirection();
 						Neighbor newServerLoc = myLogic.neighbors.get(newServerDir);
 						if(newServerLoc != null) {		//We already have a neighbor there!
-							updateAndForward = false;	//Stop forwarding this newServerMessage
+							forward = false;	//Stop forwarding this newServerMessage
 							boolean serversNotEqual = !newServerLoc.equals(msg.newServer); 
 							if(newServerLoc.getPriority() < msg.newServer.getPriority()) {
+								//put newServer as my neighbor
+								myLogic.neighbors.put(newServerDir, msg.newServer);
+								
 								//Send killnote to newServerLoc
+								
 								//Send neighbornote to newServer
-								//neighbors.put(newServer)
+								TransferSender.sendNeighborNote(
+									myServer.getTransferSender().socket,
+									myServer.toNeighbor(),
+									msg.newServer,
+									Neighbor.flip(newServerDir)
+								);
+								Server.log.println("(2) This server is a neighbor, but I have an existing neighbor there (new server won, neighbor " + newServerLoc + " lost) " + msg);
 							} else if(newServerLoc.getPriority() <= msg.newServer.getPriority() && serversNotEqual) {
 								//Send killnote to newServer
 								//No need to send neighbornote as newServerLoc is already our neighbor
+								Server.log.println("(2) This server is a neighbor, but I have an existing neighbor there (my neighbor " + newServerLoc + " won) " + msg);
+							} else {
+								Server.log.println("(3) This server is a neighbor, but I already know about this neighbor " + msg);
 							}
 							//Other case: servers are equal. We have seen this message before, and can stop sending it.
 						} else {	//No existing neighbor here
+							//Update before setting neighbors
+							sendDir = msg.updateToNextStep(myLogic);
+							
 							//put newServer as my neighbor
+							myLogic.neighbors.put(newServerDir, msg.newServer);
+							
 							//send newServer a neighbornote
+							TransferSender.sendNeighborNote(
+								myServer.getTransferSender().socket,
+								myServer.toNeighbor(),
+								msg.newServer,
+								Neighbor.flip(newServerDir)
+							);
+							
+							//The message may get sent, so continue to update the neighbors in the message
+							msg.neighbors.put(Neighbor.flip(newServerDir), myServer.toNeighbor());
+							
+							Server.log.println("(1) This server is a neighbor, and I don't have an existing neighbor there " + msg);
 						}
+					} else {	//Not a neighbor
+						//Update message to prepare for forwarding
+						sendDir = msg.updateToNextStep(myLogic);
+						
+						Server.log.println("(4) This server is not a neighbor " + msg);
 					}
 					if(msg.ttl <= 0) {
-						updateAndForward = false;
+						forward = false;
+						Server.log.println("(5) This messages TTL has timed out " + msg);
 					}
-					if(updateAndForward) {
-						Neighbor.Direction sendDir = msg.updateToNextStep(myLogic);
-						//send
+					if(forward) {
+						Neighbor to = myLogic.neighbors.get(sendDir);
+						
+						if(to == null) {
+							Server.log.println("ERROR: Message has the wrong direction " + sendDir);
+						} else {
+							TransferSender.sendNewServerMessage(myServer.getTransferSender().socket, msg, to);
+						}
 					}
 					break;
 				default:

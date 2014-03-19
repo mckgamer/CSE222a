@@ -22,6 +22,13 @@ public class NewServerMessage {
 	protected int xOffset, yOffset;
 	protected Neighbor newServer;
 	protected HashMap<Neighbor.Direction,Neighbor> neighbors = new HashMap<Neighbor.Direction,Neighbor>();
+	public static final int SIZE = 
+		4 +
+		1 +
+		1 +
+		4 + 4 +
+		Neighbor.ENCODE_SIZE +
+		Neighbor.ENCODE_SIZE * Neighbor.Direction.values().length;
 	
 	//Information to determine the next step
 	private Stepper [] steppers;
@@ -63,7 +70,7 @@ public class NewServerMessage {
 	 * @return A code indicating actions to be taken by the server thread
 	 */
 	public Neighbor.Direction updateToNextStep(GameLogic logic) {
-		Neighbor.Direction dirToStepNext = Neighbor.Direction.TOP;	//Arbitrary direction, should always be overridden
+		Neighbor.Direction dirToStepNext = Neighbor.Direction.TOPLEFT;	//Arbitrary direction, should always be overridden
 		ttl--;
 		
 		//Determine which way to step next
@@ -82,27 +89,31 @@ public class NewServerMessage {
 				break;
 			}
 		}
-		
+		if(dirToStepNext == Direction.TOPLEFT) {
+			Server.log.println("ERROR: Invalid direction!");
+		} else {
+			Server.log.println("Actual direction: " + dirToStepNext);
+		}
 		return dirToStepNext;
 	}
 	
-	public Neighbor.Direction getDirection() {
+	public Neighbor.Direction getDirection() {	//This is the direction to look for a neighbor
 		if(xOffset < 0 && yOffset == 0) {
-			return Direction.LEFT;
-		} else if(xOffset < 0 && yOffset < 0) {
-			return Direction.TOPLEFT;
-		} else if(xOffset == 0 && yOffset < 0) {
-			return Direction.TOP;
-		} else if(xOffset > 0 && yOffset < 0) {
-			return Direction.TOPRIGHT;
-		} else if(xOffset > 0 && yOffset == 0) {
 			return Direction.RIGHT;
-		} else if(xOffset > 0 && yOffset > 0) {
+		} else if(xOffset < 0 && yOffset < 0) {
 			return Direction.BOTTOMRIGHT;
-		} else if(xOffset == 0 && yOffset > 0) {
+		} else if(xOffset == 0 && yOffset < 0) {
 			return Direction.BOTTOM;
-		} else /*if(xOffset < 0 && yOffset > 0)*/ {
+		} else if(xOffset > 0 && yOffset < 0) {
 			return Direction.BOTTOMLEFT;
+		} else if(xOffset > 0 && yOffset == 0) {
+			return Direction.LEFT;
+		} else if(xOffset > 0 && yOffset > 0) {
+			return Direction.TOPLEFT;
+		} else if(xOffset == 0 && yOffset > 0) {
+			return Direction.TOP;
+		} else /*if(xOffset < 0 && yOffset > 0)*/ {
+			return Direction.TOPRIGHT;
 		}
 	}
 	
@@ -161,14 +172,15 @@ public class NewServerMessage {
 	public static NewServerMessage create(int ttl, byte circleDir, Neighbor.Direction dirToNewServer, Neighbor newServer, Neighbor neighbor) {
 		int x = 0, y = 0;	//offsets
 		byte stepDir = 0;
-    	switch(dirToNewServer) {
+		Neighbor.Direction dirFromNewServer = Neighbor.flip(dirToNewServer);
+    	switch(dirFromNewServer) {
     	case TOPLEFT:
     		x--;
     		y--;
     		break;
     	case TOP:
     		y--;
-    		stepDir = STEP_EAST;	//This is equivalent to west for clockwise.
+    		stepDir = STEP_WEST;	//This is equivalent to east for clockwise.
     		break;
     	case TOPRIGHT:
     		x++;
@@ -176,7 +188,7 @@ public class NewServerMessage {
     		break;
     	case RIGHT:
     		x++;
-    		stepDir = (circleDir == CIRCLE_CCW) ? STEP_SOUTH : STEP_NORTH;
+    		stepDir = (circleDir == CIRCLE_CCW) ? STEP_NORTH : STEP_SOUTH;
     		break;
     	case BOTTOMRIGHT:
     		x++;
@@ -184,7 +196,7 @@ public class NewServerMessage {
     		break;
     	case BOTTOM:
     		y++;
-    		stepDir = STEP_WEST;	//This is equivalent to east for clockwise.
+    		stepDir = STEP_EAST;	//This is equivalent to west for clockwise.
     		break;
     	case BOTTOMLEFT:
     		x--;
@@ -192,7 +204,7 @@ public class NewServerMessage {
     		break;
     	case LEFT:
     		x--;
-    		stepDir = (circleDir == CIRCLE_CCW) ? STEP_NORTH : STEP_SOUTH;
+    		stepDir = (circleDir == CIRCLE_CCW) ? STEP_SOUTH : STEP_NORTH;
     		break;
 		default:
 			break;
@@ -200,7 +212,7 @@ public class NewServerMessage {
     	
     	NewServerMessage msg = new NewServerMessage(ttl, circleDir, stepDir, x, y);
     	msg.newServer = newServer;
-    	msg.neighbors.put(dirToNewServer, neighbor);
+    	msg.neighbors.put(dirFromNewServer, neighbor);
     	return msg;
 	}
 	
@@ -243,6 +255,7 @@ public class NewServerMessage {
 		@Override
 		public int step(NewServerMessage msg) {
 			msg.yOffset--;	//Change the offset
+			Server.log.println("Stepped north");
 			return STEP_NORTH;
 		}
 
@@ -261,6 +274,7 @@ public class NewServerMessage {
 		@Override
 		public int step(NewServerMessage msg) {
 			msg.xOffset++;
+			Server.log.println("Stepped east");
 			return STEP_EAST;
 		}
 
@@ -279,6 +293,7 @@ public class NewServerMessage {
 		@Override
 		public int step(NewServerMessage msg) {
 			msg.yOffset++;
+			Server.log.println("Stepped south");
 			return STEP_SOUTH;
 		}
 
@@ -297,6 +312,7 @@ public class NewServerMessage {
 		@Override
 		public int step(NewServerMessage msg) {
 			msg.xOffset--;
+			Server.log.println("Stepped west");
 			return STEP_WEST;
 		}
 
@@ -306,4 +322,42 @@ public class NewServerMessage {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		String sdir = "";
+		switch(stepDir) {
+		case STEP_NORTH:
+			sdir = "STEP_NORTH";
+			break;
+
+		case STEP_EAST:
+			if(circleDir == CIRCLE_CCW) {
+				sdir = "STEP_EAST (CCW)";
+			} else {
+				sdir = "STEP_WEST (CW)";
+			}
+			break;
+		case STEP_SOUTH:
+			sdir = "STEP_SOUTH";
+			break;
+		case STEP_WEST:
+			if(circleDir == CIRCLE_CCW) {
+				sdir = "STEP_WEST (CCW)";
+			} else {
+				sdir = "STEP_EAST (CW)";
+			}
+			break;
+		}
+		String cdir = (circleDir == CIRCLE_CCW) ? "CIRCLE_CCW" : "CIRCLE_CW";
+		String r = "New server msg: TTL(" + ttl + "), " + sdir + ", " + cdir + ", (" + xOffset + "," + yOffset + "), " + newServer + "; ";
+		for(Neighbor.Direction dir : Neighbor.Direction.values()) {
+			Neighbor nbor = neighbors.get(dir);
+			if(nbor == null) {
+				r += dir + "=?, ";
+			} else {
+				r += dir + "=" + nbor + ", ";
+			}
+		}
+		return r;
+	}
 }
