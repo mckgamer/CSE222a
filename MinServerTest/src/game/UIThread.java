@@ -33,6 +33,8 @@ public class UIThread extends JPanel {
 			
 	GameThread myPlayer;
 	int myPlayerIndex = 0;
+
+	private boolean drawGrid = true;
 	
 	public void switchMyPlayerChunk(int id) {
 		myPlayer.gameState.setInControl(null);
@@ -234,6 +236,8 @@ public class UIThread extends JPanel {
                                                                       // when it is closed
         //Set up the top bar
         JToggleButton enableRoboModeButton = new JToggleButton("Enable Robo-Mode");
+        JToggleButton gridButton = new JToggleButton("Grid");
+        gridButton.setSelected(true);
         
         JLabel ipLabel = new JLabel("Server IP:");
         
@@ -243,6 +247,7 @@ public class UIThread extends JPanel {
         topBarPanel.add(enableRoboModeButton);
         topBarPanel.add(ipLabel);
         topBarPanel.add(ipTextField);
+        topBarPanel.add(gridButton);
         
         //Set up the main application window
         JPanel mainPanel = new JPanel(new BorderLayout());
@@ -281,6 +286,11 @@ public class UIThread extends JPanel {
 
         //Add action listeners
         enableRoboModeButton.addChangeListener(new EnableRoboModeChangeListener(this, input));
+        gridButton.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				drawGrid = !drawGrid;
+			} });
         ipTextField.addActionListener(new ConnectToHostActionListener(this, gThreads.get(0), ipTextField));
 
         this.requestFocus();
@@ -318,7 +328,9 @@ public class UIThread extends JPanel {
         for (GameThread gThread : gThreads) {
         	
         	//Draw Grid
-        	drawChunkBorders(g, pX, pY, gThread);
+        	if (drawGrid) {
+        		drawChunkBorders(g, pX, pY, gThread);
+        	}
         	
         	//Print Stats for each Client
         	g.drawString("Normal: " + (double) 100*gThread.normal / (gThread.normal + gThread.outOfSync)

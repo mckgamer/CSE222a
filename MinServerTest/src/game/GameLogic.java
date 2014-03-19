@@ -163,7 +163,7 @@ public class GameLogic {
     		
 	    	int bCount = wrapped.getInt();
 	    	for (int b=0;b<bCount;b++) {
-	    		int id = wrapped.getInt();
+	    		int id = mUIDGen.getOtherID();wrapped.getInt(); //TODO, better? Throw this out to make sure no replacements
 				Bullet temp = new Bullet(id);
 				temp.decode(wrapped);
 				//temp.x += temp.xvel;
