@@ -57,6 +57,17 @@ public class TransferSender extends Thread {
 					Server.log.printerr(e);
 				}
 				
+				//Ensure that all servers exist if a client might be able to see them
+				if(myLogic.players.size() > 0) {
+					//There is a player in this chunk, make sure all the surrounding servers exist
+					for(Neighbor.Direction dir : Neighbor.Direction.values()) {
+						Neighbor nbor = myLogic.neighbors.get(dir);
+						if(nbor == null) {
+							Server.log.println("Generating my neighbor " + dir);
+	                		generateServer(dir);
+						}
+					}
+				}
 				synchronized (myLogic.playerTransfer) {
 					
 					for (Neighbor.Direction neigh : myLogic.playerTransfer.keySet()) {
@@ -90,6 +101,9 @@ public class TransferSender extends Thread {
 		                	wrapped.putInt(size);
 
 		                	if(myLogic.neighbors.get(neigh) == null) {
+		                		if(ptrans.size() > 0) {
+		                			Server.log.println("ERROR: Somehow a server did not exist in direction " + neigh + " when " + ptrans.size() + " players are in this chunk!");
+		                		}
 		                		generateServer(neigh);
 		                	}
 		                	
@@ -144,6 +158,8 @@ public class TransferSender extends Thread {
 		//Prepare the NewServer message
     	NewServerMessage msgCcw = NewServerMessage.create(100, NewServerMessage.CIRCLE_CCW, dir, newNeighbor, myThread.toNeighbor());
     	NewServerMessage msgCw  = NewServerMessage.create(100, NewServerMessage.CIRCLE_CW,  dir, newNeighbor, myThread.toNeighbor());
+    	Server.log.println("New CCW msg: " + msgCcw);
+    	Server.log.println("New CW msg: " + msgCw);
     	Neighbor.Direction ccwSendTo = msgCcw.updateToNextStep(myLogic);
     	Neighbor.Direction cwSendTo = msgCw.updateToNextStep(myLogic);
     	

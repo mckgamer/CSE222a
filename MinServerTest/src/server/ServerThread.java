@@ -3,16 +3,11 @@ package server;
 import game.GameLogic;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Random;
-
-import javax.swing.Icon;
 
 import shared.ServerMessage;
 
@@ -248,6 +243,8 @@ public class ServerThread extends Thread /*Process*/ {
 				assert (normalBuf != null);
 				dummy.updateState(ByteBuffer.wrap(normalBuf, 1,
 						normalBuf.length - 1));
+				
+				
 			} else {
 				/* NO ONE IS CONNECTED BUT STILL NEED TO TAKE TRANSFERS! */
 				synchronized (transferListener.transfers) {
